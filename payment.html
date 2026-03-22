@@ -104,6 +104,7 @@
         </main>
     </div>
 
+    <script src="notification-popup.js"></script>
     <script src="script.js"></script>
     <script>
         let pendingPaymentData = null;
@@ -176,7 +177,7 @@
             
             const errorDiv = document.getElementById('errorMessages');
             if (errors.length > 0) {
-                errorDiv.innerHTML = errors.map(error => `<div class="error-message" style="display: block;">${error}</div>`).join('');
+                showNotification(errors.join('\n'), 'error', 'Validation Error');
                 return false;
             }
             

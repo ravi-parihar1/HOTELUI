@@ -249,7 +249,7 @@
                     Payment: ${reservation.paid ? 'Paid' : 'Pending'}
                     Booking Date: ${new Date(reservation.bookingDate).toLocaleDateString()}
                 `;
-                alert(details);
+                showNotification(details, 'info', 'Booking Details');
             }
         }
 
@@ -273,6 +273,7 @@
             return `${floor}0${room}`;
         }
     </script>
+    <script src="notification-popup.js"></script>
 
     <style>
         .status-paid {

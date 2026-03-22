@@ -37,41 +37,16 @@ function generateTransactionId() {
     return 'TXN' + Math.random().toString(36).substr(2, 12).toUpperCase();
 }
 
-// Show notification
+// Show notification - Updated to use popup system
 function showNotification(message, type = 'success') {
-    // Remove existing notifications
-    const existingNotifications = document.querySelectorAll('.notification');
-    existingNotifications.forEach(notification => notification.remove());
+    // Use the modern popup notification system
+    if (typeof window.showNotificationPopup === 'function') {
+        window.showNotificationPopup(message, type);
+        return;
+    }
     
-    const notification = document.createElement('div');
-    notification.className = 'notification';
-    notification.style.background = type === 'success' ? '#28a745' : '#dc3545';
-    notification.style.color = 'white';
-    notification.style.padding = '15px 20px';
-    notification.style.borderRadius = '8px';
-    notification.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-    notification.style.zIndex = '1001';
-    notification.style.position = 'fixed';
-    notification.style.top = '20px';
-    notification.style.right = '20px';
-    notification.style.fontSize = '1rem';
-    notification.style.maxWidth = '300px';
-    notification.style.wordWrap = 'break-word';
-    notification.textContent = message;
-    notification.style.display = 'block';
-    notification.style.animation = 'slideIn 0.3s ease-out';
-    
-    document.body.appendChild(notification);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-        notification.style.animation = 'slideOut 0.3s ease-in';
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.remove();
-            }
-        }, 300);
-    }, 3000);
+    // Simple fallback if popup system not loaded
+    console.log('Notification:', message, type);
 }
 
 // Add CSS animations for notifications
@@ -157,7 +132,7 @@ function validateRegistrationForm() {
     
     const errorDiv = document.getElementById('errorMessages');
     if (errors.length > 0) {
-        errorDiv.innerHTML = errors.map(error => `<div class="error-message" style="display: block;">${error}</div>`).join('');
+        showNotification(errors.join('\n'), 'error', 'Validation Error');
         return false;
     }
     
@@ -220,13 +195,16 @@ function handleRegistration(event) {
     
     storeUserData(userData);
     
-    // Show success message
+    // Show success popup
+    const successMessage = `Consumer Registration successful!\n\nYour Customer ID: ${autoCustomerId}\n\nPlease save this Customer ID for future reference. You can now login with your email.`;
+    showNotification(successMessage, 'success', 'Registration Successful!');
+    
+    // Also show the Customer ID in the success div for reference
     const successDiv = document.getElementById('successMessage');
     successDiv.innerHTML = `
         <div class="success-message">
-            <h3>Consumer Registration successful.</h3>
-            <p><strong>Your Customer ID:</strong> ${autoCustomerId}</p>
-            <p>Please save this Customer ID for future reference. You can now login with your email.</p>
+            <h3>Registration completed! Your Customer ID is: ${autoCustomerId}</h3>
+            <p>Please save this Customer ID for future reference.</p>
         </div>
     `;
     

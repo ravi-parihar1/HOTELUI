@@ -194,7 +194,7 @@
                     Bill Amount: $${reservation.billAmount || 0}
                     Status: ${reservation.status}
                 `;
-                alert(details);
+                showNotification(details, 'info', 'Booking Details');
             }
         }
 
@@ -205,5 +205,6 @@
             }, 1000);
         }
     </script>
+    <script src="notification-popup.js"></script>
 </body>
 </html>

@@ -593,30 +593,177 @@ table tr:nth-child(even) {
     overflow: hidden;
 }
 
-/* Notifications */
-.notification {
+/* Minimal White Popup Notifications */
+.notification-popup {
     position: fixed;
-    top: var(--space-20);
-    right: var(--space-6);
-    background: linear-gradient(135deg, var(--success-500), var(--success-600));
-    color: white;
-    padding: var(--space-4) var(--space-6);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-2xl);
-    z-index: 1001;
-    font-weight: 600;
-    animation: slideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    max-width: 400px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px 48px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 9999;
+    min-width: 380px;
+    max-width: 500px;
+    text-align: center;
+    border: 1px solid #e5e7eb;
+    animation: notificationSlideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Inter', sans-serif;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(100%) rotate(10deg);
+.notification-popup.success {
+    background: #ffffff;
+    color: #059669;
+    border-color: #10b981;
+}
+
+.notification-popup.error {
+    background: #ffffff;
+    color: #dc2626;
+    border-color: #ef4444;
+}
+
+.notification-popup.warning {
+    background: #ffffff;
+    color: #d97706;
+    border-color: #f59e0b;
+}
+
+.notification-popup.info {
+    background: #ffffff;
+    color: #0891b2;
+    border-color: #06b6d4;
+}
+
+.notification-popup .notification-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    display: block;
+}
+
+.notification-popup h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: #111827;
+}
+
+.notification-popup p {
+    margin: 0 0 24px 0;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    white-space: pre-line;
+    color: #6b7280;
+}
+
+.notification-popup .notification-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: #6b7280;
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.notification-popup .notification-close:hover {
+    background: #e5e7eb;
+    color: #374151;
+    transform: scale(1.05);
+}
+
+.notification-popup .notification-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 24px;
+}
+
+.notification-popup .btn {
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    min-height: 44px;
+    margin: 0;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: 1px solid;
+}
+
+.notification-popup .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes notificationSlideIn {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    100% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+@keyframes notificationSlideOut {
+    0% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+}
+
+.notification-popup.hiding {
+    animation: notificationSlideOut 0.3s ease forwards;
+}
+
+/* Simple Overlay Background */
+.notification-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 9998;
+    animation: overlayFadeIn 0.3s ease;
+}
+
+.notification-overlay.hiding {
+    animation: overlayFadeOut 0.3s ease forwards;
+}
+
+@keyframes overlayFadeIn {
+    0% {
         opacity: 0;
     }
-    to {
-        transform: translateX(0) rotate(0deg);
+    100% {
         opacity: 1;
+    }
+}
+
+@keyframes overlayFadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
     }
 }
 
@@ -1598,34 +1745,6 @@ table tr:nth-child(even) {
     border: none;
 }
 
-/* Notifications */
-.notification {
-    position: fixed;
-    top: var(--space-20);
-    right: var(--space-6);
-    background: var(--success);
-    color: var(--white);
-    padding: var(--space-4) var(--space-6);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-2xl);
-    z-index: 1001;
-    font-weight: 600;
-    animation: slideIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    max-width: 400px;
-    border: 1px solid var(--success);
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%) rotate(5deg);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0) rotate(0deg);
-        opacity: 1;
-    }
-}
-
 /* Landing Page */
 .landing-page {
     display: flex;
@@ -1941,32 +2060,6 @@ table tr:nth-child(even) {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     display: inline-block;
-}
-
-.notification {
-    position: fixed;
-    top: 80px;
-    right: 20px;
-    background: var(--accent-color);
-    color: white;
-    padding: 16px 24px;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    z-index: 1001;
-    font-weight: 600;
-    animation: slideIn 0.3s ease-out;
-    max-width: 400px;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
 }
 
 @media (max-width: 768px) {
