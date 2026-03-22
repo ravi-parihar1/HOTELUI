@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - Customer Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="customer-dashboard.html">Home</a></li>
+                    <li><a href="reservation.html">Reservation</a></li>
+                    <li><a href="billing.html">Billing Page</a></li>
+                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="customer-support.html">Contact Support</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Guest</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>My Bills</h1>
+            <p>View your billing information and make payments</p>
+        </header>
+        
+        <main>
+            <div class="table-container">
+                <h3>Current Bills</h3>
+                <div id="currentBills">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading bills...</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>Payment History</h3>
+                <div id="paymentHistory">
+                    <p style="text-align: center; color: #666; padding: 20px;">No payment history available</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.customerName;
+                loadCurrentBills();
+                loadPaymentHistory();
+            }
+        });
+
+        function loadCurrentBills() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const userReservations = reservations.filter(r => r.customerId === currentUser.customerId && r.status === 'approved');
+            
+            if (userReservations.length === 0) {
+                document.getElementById('currentBills').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No current bills to display</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Check-in Date</th>
+                            <th>Check-out Date</th>
+                            <th>Room Type</th>
+                            <th>Room Number</th>
+                            <th>Bill Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userReservations.map(reservation => {
+                            const isPaid = reservation.paid || false;
+                            return `
+                                <tr>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${reservation.checkInDate}</td>
+                                    <td>${reservation.checkOutDate}</td>
+                                    <td>${reservation.roomPreference}</td>
+                                    <td>${reservation.roomNumber || 'Not assigned'}</td>
+                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td><span class="status-${isPaid ? 'paid' : 'pending'}">${isPaid ? 'Paid' : 'Pending'}</span></td>
+                                    <td>
+                                        ${!isPaid ? `<button class="btn-primary" onclick="payBill('${reservation.bookingId}', ${reservation.billAmount || 0})">Pay Now</button>` : '<span style="color: #28a745;">Paid</span>'}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('currentBills').innerHTML = html;
+        }
+
+        function loadPaymentHistory() {
+            const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+            const userPayments = payments.filter(p => p.customerId === currentUser.customerId);
+            
+            if (userPayments.length === 0) {
+                document.getElementById('paymentHistory').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No payment history available</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Booking ID</th>
+                            <th>Amount</th>
+                            <th>Payment Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userPayments.map(payment => `
+                            <tr>
+                                <td>${payment.transactionId}</td>
+                                <td>${payment.bookingId}</td>
+                                <td>$${payment.amount}</td>
+                                <td>${new Date(payment.paymentDate).toLocaleDateString()}</td>
+                                <td><span class="status-success">Success</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('paymentHistory').innerHTML = html;
+        }
+
+        function payBill(bookingId, amount) {
+            // Store payment info in session for payment page
+            sessionStorage.setItem('pendingPayment', JSON.stringify({
+                bookingId: bookingId,
+                amount: amount,
+                customerId: currentUser.customerId
+            }));
+            
+            // Redirect to payment page
+            window.location.href = 'payment.html';
+        }
+    </script>
+
+    <style>
+        .status-paid {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-success {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</body>
+</html>

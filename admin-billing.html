@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Billing - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html">Home</a></li>
+                    <li><a href="admin-reservation.html">Reservation</a></li>
+                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Billing Management</h1>
+            <p>Generate invoices and manage billing for customers</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <h3>Generate Invoice for Customer</h3>
+                <form id="invoiceForm">
+                    <div class="form-group">
+                        <label for="customerId">Select Customer:</label>
+                        <select id="customerId" name="customerId" required>
+                            <option value="">Choose a customer...</option>
+                        </select>
+                        <div style="margin-top: 10px;">
+                            <label style="font-size: 0.9rem; color: #666;">
+                                <input type="checkbox" id="manualEntry" onchange="toggleManualEntry()">
+                                Enter Customer ID manually
+                            </label>
+                        </div>
+                        <input type="text" id="manualCustomerId" name="manualCustomerId" placeholder="Enter Customer ID manually" style="display: none; margin-top: 10px;">
+                        <button type="submit" class="btn-primary" style="margin-top: 15px;">Generate Invoice</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="invoiceDetails" style="display: none;">
+                <div class="table-container">
+                    <h3>Invoice Details</h3>
+                    <div id="invoiceContent"></div>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>All Invoices</h3>
+                <div id="allInvoices">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading invoices...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadAllInvoices();
+                loadCustomerDropdown(); // Load customers into dropdown
+            } else {
+                window.location.href = 'login.html';
+            }
+            
+            // Add form submission handler
+            const form = document.getElementById('invoiceForm');
+            if (form) {
+                form.addEventListener('submit', generateInvoice);
+            }
+        });
+
+        // Load customers into dropdown
+        function loadCustomerDropdown() {
+            const users = getUsers();
+            const customers = users.filter(u => u.role === 'customer');
+            const selectElement = document.getElementById('customerId');
+            
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customerId;
+                option.textContent = `${customer.customerName} (${customer.customerId})`;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Toggle manual entry
+        function toggleManualEntry() {
+            const checkbox = document.getElementById('manualEntry');
+            const dropdown = document.getElementById('customerId');
+            const manualInput = document.getElementById('manualCustomerId');
+            
+            if (checkbox.checked) {
+                dropdown.style.display = 'none';
+                dropdown.removeAttribute('required');
+                manualInput.style.display = 'block';
+                manualInput.setAttribute('required', 'required');
+            } else {
+                dropdown.style.display = 'block';
+                dropdown.setAttribute('required', 'required');
+                manualInput.style.display = 'none';
+                manualInput.removeAttribute('required');
+                manualInput.value = '';
+            }
+        }
+
+        function generateInvoice(event) {
+            event.preventDefault();
+            
+            const isManualEntry = document.getElementById('manualEntry').checked;
+            let customerId;
+            
+            if (isManualEntry) {
+                customerId = document.getElementById('manualCustomerId').value.trim();
+            } else {
+                customerId = document.getElementById('customerId').value.trim();
+            }
+            
+            if (!customerId) {
+                showNotification('Please select or enter a Customer ID', 'error');
+                return;
+            }
+            
+            const customer = getUsers().find(u => u.customerId === customerId);
+            if (!customer) {
+                showNotification('Customer not found', 'error');
+                return;
+            }
+            
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const customerReservations = reservations.filter(r => r.customerId === customerId && r.status === 'approved');
+            
+            if (customerReservations.length === 0) {
+                showNotification('No approved reservations found for this customer', 'error');
+                return;
+            }
+            
+            displayInvoice(customer, customerReservations);
+        }
+
+        function displayInvoice(customer, reservations) {
+            const invoiceSection = document.getElementById('invoiceDetails');
+            const invoiceContent = document.getElementById('invoiceContent');
+            
+            const totalAmount = reservations.reduce((sum, r) => sum + (r.billAmount || 0), 0);
+            const paidAmount = reservations.filter(r => r.paid).reduce((sum, r) => sum + (r.billAmount || 0), 0);
+            const pendingAmount = totalAmount - paidAmount;
+            
+            const invoiceHtml = `
+                <div style="background: white; padding: 30px; border-radius: 10px; border: 1px solid #e0e0e0;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2>INVOICE</h2>
+                        <p>Invoice ID: INV${Date.now()}</p>
+                        <p>Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+                        <div>
+                            <h4>Bill To:</h4>
+                            <p><strong>Name:</strong> ${customer.customerName}</p>
+                            <p><strong>Customer ID:</strong> ${customer.customerId}</p>
+                            <p><strong>Email:</strong> ${customer.email}</p>
+                            <p><strong>Phone:</strong> ${customer.mobile}</p>
+                            <p><strong>Address:</strong> ${customer.address}</p>
+                        </div>
+                        <div>
+                            <h4>Payment Status:</h4>
+                            <p><strong>Total Amount:</strong> $${totalAmount}</p>
+                            <p><strong>Paid Amount:</strong> $${paidAmount}</p>
+                            <p><strong>Pending Amount:</strong> $${pendingAmount}</p>
+                        </div>
+                    </div>
+                    
+                    <table style="width: 100%; margin-bottom: 30px;">
+                        <thead>
+                            <tr style="background: #f8f9fa;">
+                                <th style="padding: 10px; text-align: left;">Booking ID</th>
+                                <th style="padding: 10px; text-align: left;">Check-in</th>
+                                <th style="padding: 10px; text-align: left;">Check-out</th>
+                                <th style="padding: 10px; text-align: left;">Room Type</th>
+                                <th style="padding: 10px; text-align: left;">Room No.</th>
+                                <th style="padding: 10px; text-align: right;">Amount</th>
+                                <th style="padding: 10px; text-align: center;">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${reservations.map(reservation => `
+                                <tr>
+                                    <td style="padding: 10px;">${reservation.bookingId}</td>
+                                    <td style="padding: 10px;">${reservation.checkInDate}</td>
+                                    <td style="padding: 10px;">${reservation.checkOutDate}</td>
+                                    <td style="padding: 10px;">${reservation.roomPreference}</td>
+                                    <td style="padding: 10px;">${reservation.roomNumber || 'Not assigned'}</td>
+                                    <td style="padding: 10px; text-align: right;">$${reservation.billAmount || 0}</td>
+                                    <td style="padding: 10px; text-align: center;">
+                                        <span class="status-${reservation.paid ? 'paid' : 'pending'}">
+                                            ${reservation.paid ? 'Paid' : 'Pending'}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8f9fa; font-weight: bold;">
+                                <td colspan="5" style="padding: 10px; text-align: right;">Total:</td>
+                                <td style="padding: 10px; text-align: right;">$${totalAmount}</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn-primary" onclick="finalizeInvoice('${customer.customerId}', ${totalAmount})">Finalize Invoice</button>
+                        <button class="btn-secondary" onclick="window.print()">Print Invoice</button>
+                    </div>
+                </div>
+            `;
+            
+            invoiceContent.innerHTML = invoiceHtml;
+            invoiceSection.style.display = 'block';
+            invoiceSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function finalizeInvoice(customerId, totalAmount) {
+            const invoiceData = {
+                invoiceId: 'INV' + Date.now(),
+                customerId: customerId,
+                totalAmount: totalAmount,
+                generatedDate: new Date().toISOString(),
+                status: 'generated'
+            };
+            
+            let invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+            invoices.push(invoiceData);
+            localStorage.setItem('invoices', JSON.stringify(invoices));
+            
+            showNotification('Invoice finalized successfully!');
+            loadAllInvoices();
+        }
+
+        function loadAllInvoices() {
+            const invoices = JSON.parse(localStorage.getItem('invoices') || '[]');
+            
+            if (invoices.length === 0) {
+                document.getElementById('allInvoices').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No invoices generated yet</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Invoice ID</th>
+                            <th>Customer ID</th>
+                            <th>Customer Name</th>
+                            <th>Total Amount</th>
+                            <th>Generated Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${invoices.map(invoice => {
+                            const customer = getUsers().find(u => u.customerId === invoice.customerId);
+                            return `
+                                <tr>
+                                    <td>${invoice.invoiceId}</td>
+                                    <td>${invoice.customerId}</td>
+                                    <td>${customer ? customer.customerName : 'Unknown'}</td>
+                                    <td>$${invoice.totalAmount}</td>
+                                    <td>${new Date(invoice.generatedDate).toLocaleDateString()}</td>
+                                    <td><span class="status-success">${invoice.status}</span></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('allInvoices').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

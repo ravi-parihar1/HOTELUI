@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking History - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html">Home</a></li>
+                    <li><a href="admin-reservation.html">Reservation</a></li>
+                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Customer Booking History</h1>
+            <p>View booking history for specific customers</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <h3>Enter Customer ID for Booking History</h3>
+                <form id="historyForm">
+                    <div class="form-group">
+                        <label for="customerId">Customer ID:</label>
+                        <input type="text" id="customerId" name="customerId" required>
+                        <button type="submit" class="btn-primary">View History</button>
+                    </div>
+                </form>
+            </div>
+
+            <div id="customerHistory" style="display: none;">
+                <div class="table-container">
+                    <h3 id="customerName">Customer Booking History</h3>
+                    <div id="historyContent"></div>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>All Customers Booking Summary</h3>
+                <div id="allCustomersSummary">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading customer summary...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadAllCustomersSummary();
+            } else {
+                window.location.href = 'login.html';
+            }
+            
+            // Add form submission handler
+            const form = document.getElementById('historyForm');
+            if (form) {
+                form.addEventListener('submit', viewCustomerHistory);
+            }
+        });
+
+        function viewCustomerHistory(event) {
+            event.preventDefault();
+            
+            const customerId = document.getElementById('customerId').value.trim();
+            if (!customerId) {
+                showNotification('Please enter a Customer ID', 'error');
+                return;
+            }
+            
+            const customer = getUsers().find(u => u.customerId === customerId);
+            if (!customer) {
+                showNotification('Customer not found', 'error');
+                return;
+            }
+            
+            displayCustomerHistory(customer);
+        }
+
+        function displayCustomerHistory(customer) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const customerReservations = reservations.filter(r => r.customerId === customer.customerId);
+            
+            const historySection = document.getElementById('customerHistory');
+            const historyContent = document.getElementById('historyContent');
+            const customerNameHeader = document.getElementById('customerName');
+            
+            customerNameHeader.textContent = `Booking History - ${customer.customerName} (${customer.customerId})`;
+            
+            if (customerReservations.length === 0) {
+                historyContent.innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No booking history available for this customer</p>';
+            } else {
+                // Sort by booking date (newest first)
+                customerReservations.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+
+                const html = `
+                    <div style="margin-bottom: 20px;">
+                        <p><strong>Total Bookings:</strong> ${customerReservations.length}</p>
+                        <p><strong>Total Amount:</strong> $${customerReservations.reduce((sum, r) => sum + (r.billAmount || 0), 0)}</p>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reservation ID</th>
+                                <th>Check-in Date</th>
+                                <th>Check-out Date</th>
+                                <th>Room Number</th>
+                                <th>Bill Amount</th>
+                                <th>Booking Date</th>
+                                <th>Status</th>
+                                <th>Payment Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${customerReservations.map(reservation => {
+                                const bookingDate = new Date(reservation.bookingDate).toLocaleDateString();
+                                const nights = calculateNights(reservation.checkInDate, reservation.checkOutDate);
+                                return `
+                                    <tr>
+                                        <td>${reservation.bookingId}</td>
+                                        <td>${reservation.checkInDate}</td>
+                                        <td>${reservation.checkOutDate}</td>
+                                        <td>${reservation.roomNumber || 'Not assigned'}</td>
+                                        <td>$${reservation.billAmount || 0}</td>
+                                        <td>${bookingDate}</td>
+                                        <td><span class="status-${reservation.status}">${reservation.status}</span></td>
+                                        <td><span class="status-${reservation.paid ? 'paid' : 'pending'}">${reservation.paid ? 'Paid' : 'Pending'}</span></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                historyContent.innerHTML = html;
+            }
+            
+            historySection.style.display = 'block';
+            historySection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function loadAllCustomersSummary() {
+            const users = getUsers();
+            const customers = users.filter(u => u.role === 'customer');
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            
+            if (customers.length === 0) {
+                document.getElementById('allCustomersSummary').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No customers found</p>';
+                return;
+            }
+
+            const summaryHtml = customers.map(customer => {
+                const customerReservations = reservations.filter(r => r.customerId === customer.customerId);
+                const totalBookings = customerReservations.length;
+                const totalAmount = customerReservations.reduce((sum, r) => sum + (r.billAmount || 0), 0);
+                const lastBooking = customerReservations.length > 0 ? 
+                    new Date(Math.max(...customerReservations.map(r => new Date(r.bookingDate)))).toLocaleDateString() : 'Never';
+                
+                return `
+                    <tr>
+                        <td>${customer.customerId}</td>
+                        <td>${customer.customerName}</td>
+                        <td>${customer.email}</td>
+                        <td>${customer.mobile}</td>
+                        <td>${totalBookings}</td>
+                        <td>$${totalAmount}</td>
+                        <td>${lastBooking}</td>
+                        <td>
+                            <button class="btn-secondary" onclick="viewSpecificCustomer('${customer.customerId}')">View History</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Total Bookings</th>
+                            <th>Total Amount</th>
+                            <th>Last Booking</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${summaryHtml}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('allCustomersSummary').innerHTML = html;
+        }
+
+        function viewSpecificCustomer(customerId) {
+            document.getElementById('customerId').value = customerId;
+            document.getElementById('historyForm').dispatchEvent(new Event('submit'));
+        }
+
+        function calculateNights(checkInDate, checkOutDate) {
+            const start = new Date(checkInDate);
+            const end = new Date(checkOutDate);
+            return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        }
+    </script>
+
+    <style>
+        .status-paid {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-completed {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</body>
+</html>

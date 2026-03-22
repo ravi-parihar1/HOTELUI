@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Reservations - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="admin-dashboard.html" class="logo">HotelHub</a>
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html">Dashboard</a></li>
+                    <li><a href="admin-reservation.html" class="active">Reservations</a></li>
+                    <li><a href="admin-billing.html">Billing</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Rooms</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Support</a></li>
+                </ul>
+            </nav>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Admin</span>
+                </div>
+                <a href="#" class="logout-btn btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Manage Reservations</h1>
+            <p>Approve or reject customer reservations</p>
+        </header>
+        
+        <main>
+            <div class="table-container">
+                <h3>Pending Reservations</h3>
+                <div id="pendingReservations">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading reservations...</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>All Reservations</h3>
+                <div id="allReservations">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading reservations...</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadPendingReservations();
+                loadAllReservations();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function loadPendingReservations() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const pendingReservations = reservations.filter(r => r.status === 'pending');
+            
+            if (pendingReservations.length === 0) {
+                document.getElementById('pendingReservations').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No pending reservations</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer Name</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Room Type</th>
+                            <th>Contact</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pendingReservations.map(reservation => {
+                            const user = getUsers().find(u => u.customerId === reservation.customerId);
+                            return `
+                                <tr>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${user ? user.customerName : 'Unknown'}</td>
+                                    <td>${reservation.checkInDate}</td>
+                                    <td>${reservation.checkOutDate}</td>
+                                    <td>${reservation.roomPreference}</td>
+                                    <td>${reservation.contact}</td>
+                                    <td>
+                                        <button class="btn-success" onclick="approveReservation('${reservation.bookingId}')">Approve</button>
+                                        <button class="btn-danger" onclick="rejectReservation('${reservation.bookingId}')">Reject</button>
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('pendingReservations').innerHTML = html;
+        }
+
+        function loadAllReservations() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            
+            if (reservations.length === 0) {
+                document.getElementById('allReservations').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No reservations found</p>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer Name</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Room Type</th>
+                            <th>Room Number</th>
+                            <th>Status</th>
+                            <th>Bill Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${reservations.map(reservation => {
+                            const user = getUsers().find(u => u.customerId === reservation.customerId);
+                            return `
+                                <tr>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${user ? user.customerName : 'Unknown'}</td>
+                                    <td>${reservation.checkInDate}</td>
+                                    <td>${reservation.checkOutDate}</td>
+                                    <td>${reservation.roomPreference}</td>
+                                    <td>${reservation.roomNumber || 'Not assigned'}</td>
+                                    <td><span class="status-${reservation.status}">${reservation.status}</span></td>
+                                    <td>$${reservation.billAmount || 0}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('allReservations').innerHTML = html;
+        }
+
+        function approveReservation(bookingId) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const reservationIndex = reservations.findIndex(r => r.bookingId === bookingId);
+            
+            if (reservationIndex !== -1) {
+                reservations[reservationIndex].status = 'approved';
+                reservations[reservationIndex].roomNumber = generateRoomNumber();
+                localStorage.setItem('reservations', JSON.stringify(reservations));
+                
+                showNotification('Reservation approved successfully!');
+                loadPendingReservations();
+                loadAllReservations();
+            }
+        }
+
+        function rejectReservation(bookingId) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const reservationIndex = reservations.findIndex(r => r.bookingId === bookingId);
+            
+            if (reservationIndex !== -1) {
+                reservations[reservationIndex].status = 'rejected';
+                localStorage.setItem('reservations', JSON.stringify(reservations));
+                
+                showNotification('Reservation rejected');
+                loadPendingReservations();
+                loadAllReservations();
+            }
+        }
+
+        function generateRoomNumber() {
+            const floor = Math.floor(Math.random() * 5) + 1;
+            const room = Math.floor(Math.random() * 20) + 1;
+            return `${floor}0${room}`;
+        }
+    </script>
+</body>
+</html>

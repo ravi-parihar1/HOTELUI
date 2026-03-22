@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking History - Customer Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="customer-dashboard.html">Home</a></li>
+                    <li><a href="reservation.html">Reservation</a></li>
+                    <li><a href="billing.html">Billing Page</a></li>
+                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="customer-support.html">Contact Support</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Guest</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>My Booking History</h1>
+            <p>View your previous bookings and stay history</p>
+        </header>
+        
+        <main>
+            <div class="table-container">
+                <h3>Previous Bookings</h3>
+                <div id="bookingHistory">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading booking history...</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>Booking Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #4a90e2; font-size: 2rem;" id="totalBookings">0</h4>
+                        <p>Total Bookings</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #28a745; font-size: 2rem;" id="completedBookings">0</h4>
+                        <p>Completed Stays</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #ffc107; font-size: 2rem;" id="totalSpent">$0</h4>
+                        <p>Total Amount Spent</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #17a2b8; font-size: 2rem;" id="averageStay">0</h4>
+                        <p>Average Nights</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.customerName;
+                loadBookingHistory();
+                loadBookingStatistics();
+            }
+        });
+
+        function loadBookingHistory() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const userReservations = reservations.filter(r => r.customerId === currentUser.customerId);
+            
+            if (userReservations.length === 0) {
+                document.getElementById('bookingHistory').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No booking history available</p>';
+                return;
+            }
+
+            // Sort by booking date (newest first)
+            userReservations.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Reservation ID</th>
+                            <th>Check-in Date</th>
+                            <th>Check-out Date</th>
+                            <th>Room Number</th>
+                            <th>Bill Amount</th>
+                            <th>Booking Date</th>
+                            <th>Status</th>
+                            <th>Payment Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${userReservations.map(reservation => {
+                            const bookingDate = new Date(reservation.bookingDate).toLocaleDateString();
+                            const nights = calculateNights(reservation.checkInDate, reservation.checkOutDate);
+                            return `
+                                <tr>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${reservation.checkInDate}</td>
+                                    <td>${reservation.checkOutDate}</td>
+                                    <td>${reservation.roomNumber || 'Not assigned'}</td>
+                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td>${bookingDate}</td>
+                                    <td><span class="status-${reservation.status}">${reservation.status}</span></td>
+                                    <td><span class="status-${reservation.paid ? 'paid' : 'pending'}">${reservation.paid ? 'Paid' : 'Pending'}</span></td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('bookingHistory').innerHTML = html;
+        }
+
+        function loadBookingStatistics() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const userReservations = reservations.filter(r => r.customerId === currentUser.customerId);
+            
+            const totalBookings = userReservations.length;
+            const completedBookings = userReservations.filter(r => r.status === 'completed').length;
+            const totalSpent = userReservations.reduce((sum, r) => sum + (r.billAmount || 0), 0);
+            
+            let totalNights = 0;
+            userReservations.forEach(reservation => {
+                totalNights += calculateNights(reservation.checkInDate, reservation.checkOutDate);
+            });
+            const averageStay = totalBookings > 0 ? (totalNights / totalBookings).toFixed(1) : 0;
+            
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('completedBookings').textContent = completedBookings;
+            document.getElementById('totalSpent').textContent = '$' + totalSpent;
+            document.getElementById('averageStay').textContent = averageStay;
+        }
+
+        function calculateNights(checkInDate, checkOutDate) {
+            const start = new Date(checkInDate);
+            const end = new Date(checkOutDate);
+            return Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        }
+    </script>
+
+    <style>
+        .status-paid {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-completed {
+            background: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</body>
+</html>

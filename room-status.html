@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Room Status - Admin Only</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html">Home</a></li>
+                    <li><a href="admin-reservation.html">Reservation</a></li>
+                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Room Status Management (Admin Only)</h1>
+            <p>View all room availability and optionally search for specific customer rooms</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <h3>Room Status Overview</h3>
+                <p style="color: #666; margin-bottom: 20px;">Showing all rooms and their current status</p>
+                
+                <!-- Optional Customer Search -->
+                <div style="border-top: 1px solid #ddd; padding-top: 20px; margin-top: 20px;">
+                    <h4 style="color: #4a90e2;">Optional: Search Specific Customer</h4>
+                    <form id="customerSearchForm">
+                        <div class="form-group">
+                            <label for="customerId">Search Customer ID (Optional):</label>
+                            <input type="text" id="customerId" name="customerId" placeholder="Enter 13-digit Customer ID to highlight their rooms">
+                            <button type="submit" class="btn-primary" style="background: #4a90e2;">Search Customer</button>
+                            <button type="button" onclick="resetCustomerSearch()" style="background: #6c757d; margin-left: 10px;">Clear Search</button>
+                            <button type="button" onclick="showAllCustomers()" style="background: #28a745; margin-left: 10px;">Show All Customer IDs</button>
+                        </div>
+                    </form>
+                    <div id="customerList" style="margin-top: 10px; color: #666; font-size: 0.9rem;"></div>
+                </div>
+            </div>
+
+            <div id="roomStatusDisplay" style="display: none;">
+                <div class="table-container">
+                    <h3>Room Availability Status</h3>
+                    <div id="roomStatusContent"></div>
+                </div>
+
+                <div class="table-container" style="margin-top: 40px;">
+                    <h3>Room Pricing</h3>
+                    <div id="roomPricingContent"></div>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>Overall Room Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #4a90e2; font-size: 2rem;" id="totalRooms">50</h4>
+                        <p>Total Rooms</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #28a745; font-size: 2rem;" id="vacantRooms">0</h4>
+                        <p>Vacant Rooms</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #dc3545; font-size: 2rem;" id="bookedRooms">0</h4>
+                        <p>Booked Rooms</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #ffc107; font-size: 2rem;" id="occupancyRate">0%</h4>
+                        <p>Occupancy Rate</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Helper function to get users (ensure it's available)
+        function getUsers() {
+            return JSON.parse(localStorage.getItem('hotelUsers') || '[]');
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadRoomStatistics();
+                // Show all room status by default
+                showAllRoomStatus();
+            } else {
+                window.location.href = 'login.html';
+            }
+            
+            // Add customer search form handler
+            const searchForm = document.getElementById('customerSearchForm');
+            if (searchForm) {
+                searchForm.addEventListener('submit', searchCustomerRooms);
+            }
+        });
+
+        // Show all room status by default
+        function showAllRoomStatus() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const allApprovedReservations = reservations.filter(r => r.status === 'approved');
+            
+            const statusSection = document.getElementById('roomStatusDisplay');
+            const roomStatusContent = document.getElementById('roomStatusContent');
+            const roomPricingContent = document.getElementById('roomPricingContent');
+            
+            // Generate room data
+            const roomData = generateRoomData();
+            
+            // Create a map of all booked rooms with customer information
+            const bookedRoomsMap = {};
+            allApprovedReservations.forEach(reservation => {
+                if (reservation.roomNumber) {
+                    const user = getUsers().find(u => u.customerId === reservation.customerId);
+                    bookedRoomsMap[reservation.roomNumber] = {
+                        customerName: user ? user.customerName : 'Unknown',
+                        customerId: reservation.customerId,
+                        bookingId: reservation.bookingId
+                    };
+                }
+            });
+            
+            // Room Availability Table
+            const roomStatusHtml = `
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Total Rooms:</strong> ${roomData.length}</p>
+                    <p><strong>Total Booked Rooms:</strong> ${Object.keys(bookedRoomsMap).length}</p>
+                    <p><strong>Available Rooms:</strong> ${roomData.length - Object.keys(bookedRoomsMap).length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Floor</th>
+                            <th>Room Number</th>
+                            <th>Room Type</th>
+                            <th>Status</th>
+                            <th>Price/Night</th>
+                            <th>Assigned To</th>
+                            <th>Booking ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${roomData.map(room => {
+                            const isBooked = bookedRoomsMap.hasOwnProperty(room.number);
+                            const statusClass = isBooked ? 'booked' : 'vacant';
+                            const statusText = isBooked ? 'Booked' : 'Vacant';
+                            
+                            if (isBooked) {
+                                const bookingInfo = bookedRoomsMap[room.number];
+                                return `
+                                    <tr>
+                                        <td>${room.floor}</td>
+                                        <td>${room.number}</td>
+                                        <td>${room.type}</td>
+                                        <td><span class="status-${statusClass}">${statusText}</span></td>
+                                        <td>$${room.price}</td>
+                                        <td>${bookingInfo.customerName} (${bookingInfo.customerId})</td>
+                                        <td>${bookingInfo.bookingId}</td>
+                                    </tr>
+                                `;
+                            } else {
+                                return `
+                                    <tr>
+                                        <td>${room.floor}</td>
+                                        <td>${room.number}</td>
+                                        <td>${room.type}</td>
+                                        <td><span class="status-${statusClass}">${statusText}</span></td>
+                                        <td>$${room.price}</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
+                                `;
+                            }
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            // Room Pricing Table
+            const pricingHtml = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room Type</th>
+                            <th>Total Rooms</th>
+                            <th>Available</th>
+                            <th>Booked</th>
+                            <th>Price per Night</th>
+                            <th>Monthly Revenue (Est.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${getRoomTypeStats(roomData, bookedRoomsMap).map(stat => {
+                            const booked = stat.total - stat.available;
+                            return `
+                                <tr>
+                                    <td>${stat.type}</td>
+                                    <td>${stat.total}</td>
+                                    <td>${stat.available}</td>
+                                    <td>${booked}</td>
+                                    <td>$${stat.price}</td>
+                                    <td>$${stat.monthlyRevenue}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            roomStatusContent.innerHTML = roomStatusHtml;
+            roomPricingContent.innerHTML = pricingHtml;
+            
+            statusSection.style.display = 'block';
+        }
+
+        // Search for specific customer's rooms
+        function searchCustomerRooms(event) {
+            event.preventDefault();
+            
+            const customerId = document.getElementById('customerId').value.trim();
+            console.log('Searching for Customer ID:', customerId); // Debug log
+            
+            if (!customerId) {
+                showNotification('Please enter a Customer ID', 'error');
+                return;
+            }
+            
+            if (!/^\d{13}$/.test(customerId)) {
+                showNotification('Customer ID must be exactly 13 digits', 'error');
+                return;
+            }
+            
+            const allUsers = getUsers();
+            console.log('All users:', allUsers); // Debug log
+            
+            const customer = allUsers.find(u => u.customerId === customerId);
+            console.log('Found customer:', customer); // Debug log
+            
+            if (!customer) {
+                showNotification('Customer not found', 'error');
+                return;
+            }
+            
+            highlightCustomerRooms(customer);
+        }
+
+        // Highlight specific customer's rooms
+        function highlightCustomerRooms(customer) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const allApprovedReservations = reservations.filter(r => r.status === 'approved');
+            const customerReservations = allApprovedReservations.filter(r => r.customerId === customer.customerId);
+            
+            console.log('Customer reservations:', customerReservations); // Debug log
+            
+            const roomStatusContent = document.getElementById('roomStatusContent');
+            const roomPricingContent = document.getElementById('roomPricingContent');
+            
+            // Generate room data
+            const roomData = generateRoomData();
+            
+            // Create a map of all booked rooms with customer information
+            const bookedRoomsMap = {};
+            allApprovedReservations.forEach(reservation => {
+                if (reservation.roomNumber) {
+                    const user = getUsers().find(u => u.customerId === reservation.customerId);
+                    bookedRoomsMap[reservation.roomNumber] = {
+                        customerName: user ? user.customerName : 'Unknown',
+                        customerId: reservation.customerId,
+                        bookingId: reservation.bookingId,
+                        checkIn: reservation.checkIn || reservation.checkin || 'Not specified',
+                        checkOut: reservation.checkOut || reservation.checkout || 'Not specified'
+                    };
+                }
+            });
+            
+            // Show ONLY this customer's rooms
+            const customerRoomData = roomData.filter(room => 
+                customerReservations.some(r => r.roomNumber === room.number)
+            );
+            
+            // Room Availability Table showing only customer's rooms
+            const roomStatusHtml = `
+                <div style="margin-bottom: 20px; background: #e3f2fd; padding: 15px; border-radius: 8px;">
+                    <p><strong>🔍 Customer Search Results:</strong> ${customer.customerName} (${customer.customerId})</p>
+                    <p><strong>This Customer's Bookings:</strong> ${customerReservations.length}</p>
+                    <p><strong>Rooms Assigned:</strong> ${customerRoomData.length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Floor</th>
+                            <th>Room Number</th>
+                            <th>Room Type</th>
+                            <th>Status</th>
+                            <th>Price/Night</th>
+                            <th>Booking ID</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${customerRoomData.length === 0 ? `
+                            <tr>
+                                <td colspan="8" style="text-align: center; color: #666; padding: 20px;">
+                                    This customer has no booked rooms. All their rooms are available.
+                                </td>
+                            </tr>
+                        ` : customerRoomData.map(room => {
+                            const reservation = customerReservations.find(r => r.roomNumber === room.number);
+                            const statusClass = 'booked';
+                            const statusText = 'Booked';
+                            
+                            console.log('Reservation data:', reservation); // Debug log for each reservation
+                            
+                            // Get dates with multiple fallbacks
+                            const checkInDate = reservation.checkIn || 
+                                                 reservation.checkin || 
+                                                 reservation.checkInDate || 
+                                                 reservation['check-in'] || 
+                                                 reservation.startDate || 
+                                                 'Not specified';
+                            
+                            const checkOutDate = reservation.checkOut || 
+                                                  reservation.checkout || 
+                                                  reservation.checkOutDate || 
+                                                  reservation['check-out'] || 
+                                                  reservation.endDate || 
+                                                  'Not specified';
+                            
+                            return `
+                                <tr style="background: #fff3cd; border: 2px solid #ffc107;">
+                                    <td>${room.floor}</td>
+                                    <td>${room.number} 🏠</td>
+                                    <td>${room.type}</td>
+                                    <td><span class="status-${statusClass}">${statusText}</span></td>
+                                    <td>$${room.price}</td>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${checkInDate}</td>
+                                    <td>${checkOutDate}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            roomStatusContent.innerHTML = roomStatusHtml;
+            
+            // Update pricing to show only this customer's rooms
+            const customerPricingHtml = `
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+                    <h4>Customer Room Summary</h4>
+                    <p><strong>Total Rooms Booked:</strong> ${customerRoomData.length}</p>
+                    <p><strong>Total Cost:</strong> $${customerRoomData.reduce((sum, room) => sum + room.price, 0)} per night</p>
+                    <p><strong>Room Types:</strong> ${[...new Set(customerRoomData.map(r => r.type))].join(', ')}</p>
+                </div>
+            `;
+            
+            roomPricingContent.innerHTML = customerPricingHtml;
+            
+            // Scroll to show the results
+            document.getElementById('roomStatusDisplay').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Reset customer search
+        function resetCustomerSearch() {
+            document.getElementById('customerId').value = '';
+            document.getElementById('customerList').innerHTML = '';
+            showAllRoomStatus();
+        }
+
+        // Show all customers for debugging
+        function showAllCustomers() {
+            const allUsers = getUsers();
+            const customers = allUsers.filter(u => u.role === 'customer');
+            const customerListDiv = document.getElementById('customerList');
+            
+            if (customers.length === 0) {
+                customerListDiv.innerHTML = '<p style="color: #dc3545;">No customers found. Please register some customers first.</p>';
+                return;
+            }
+            
+            let customerHtml = '<p style="color: #28a745; font-weight: bold;">Available Customer IDs:</p>';
+            customerHtml += '<ul style="margin: 5px 0; padding-left: 20px;">';
+            
+            customers.forEach(customer => {
+                customerHtml += `<li>${customer.customerName} - ${customer.customerId}</li>`;
+            });
+            
+            customerHtml += '</ul>';
+            customerHtml += '<p style="color: #666;">Copy any Customer ID and use it for search.</p>';
+            
+            customerListDiv.innerHTML = customerHtml;
+        }
+
+        function displayRoomStatus(customer) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const allApprovedReservations = reservations.filter(r => r.status === 'approved');
+            const customerReservations = allApprovedReservations.filter(r => r.customerId === customer.customerId);
+            
+            const statusSection = document.getElementById('roomStatusDisplay');
+            const roomStatusContent = document.getElementById('roomStatusContent');
+            const roomPricingContent = document.getElementById('roomPricingContent');
+            
+            // Generate room data
+            const roomData = generateRoomData();
+            
+            // Create a map of all booked rooms with customer information
+            const bookedRoomsMap = {};
+            allApprovedReservations.forEach(reservation => {
+                if (reservation.roomNumber) {
+                    const user = getUsers().find(u => u.customerId === reservation.customerId);
+                    bookedRoomsMap[reservation.roomNumber] = {
+                        customerName: user ? user.customerName : 'Unknown',
+                        customerId: reservation.customerId,
+                        bookingId: reservation.bookingId
+                    };
+                }
+            });
+            
+            // Room Availability Table
+            const roomStatusHtml = `
+                <div style="margin-bottom: 20px;">
+                    <p><strong>Customer:</strong> ${customer.customerName} (${customer.customerId})</p>
+                    <p><strong>Current Bookings:</strong> ${customerReservations.length}</p>
+                    <p><strong>Total Booked Rooms:</strong> ${Object.keys(bookedRoomsMap).length}</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Floor</th>
+                            <th>Room Number</th>
+                            <th>Room Type</th>
+                            <th>Status</th>
+                            <th>Price/Night</th>
+                            <th>Assigned To</th>
+                            <th>Booking ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${roomData.map(room => {
+                            const isBooked = bookedRoomsMap.hasOwnProperty(room.number);
+                            const statusClass = isBooked ? 'booked' : 'vacant';
+                            const statusText = isBooked ? 'Booked' : 'Vacant';
+                            
+                            if (isBooked) {
+                                const bookingInfo = bookedRoomsMap[room.number];
+                                return `
+                                    <tr>
+                                        <td>${room.floor}</td>
+                                        <td>${room.number}</td>
+                                        <td>${room.type}</td>
+                                        <td><span class="status-${statusClass}">${statusText}</span></td>
+                                        <td>$${room.price}</td>
+                                        <td>${bookingInfo.customerName} (${bookingInfo.customerId})</td>
+                                        <td>${bookingInfo.bookingId}</td>
+                                    </tr>
+                                `;
+                            } else {
+                                return `
+                                    <tr>
+                                        <td>${room.floor}</td>
+                                        <td>${room.number}</td>
+                                        <td>${room.type}</td>
+                                        <td><span class="status-${statusClass}">${statusText}</span></td>
+                                        <td>$${room.price}</td>
+                                        <td>-</td>
+                                        <td>-</td>
+                                    </tr>
+                                `;
+                            }
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            // Room Pricing Table
+            const pricingHtml = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Room Type</th>
+                            <th>Total Rooms</th>
+                            <th>Available</th>
+                            <th>Booked</th>
+                            <th>Price per Night</th>
+                            <th>Monthly Revenue (Est.)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${getRoomTypeStats(roomData, bookedRoomsMap).map(stat => {
+                            const booked = stat.total - stat.available;
+                            return `
+                                <tr>
+                                    <td>${stat.type}</td>
+                                    <td>${stat.total}</td>
+                                    <td>${stat.available}</td>
+                                    <td>${booked}</td>
+                                    <td>$${stat.price}</td>
+                                    <td>$${stat.monthlyRevenue}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            roomStatusContent.innerHTML = roomStatusHtml;
+            roomPricingContent.innerHTML = pricingHtml;
+            
+            statusSection.style.display = 'block';
+            statusSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function generateRoomData() {
+            const roomTypes = [
+                { type: 'Standard', price: 100, count: 20 },
+                { type: 'Deluxe', price: 150, count: 15 },
+                { type: 'Suite', price: 250, count: 10 },
+                { type: 'Presidential', price: 500, count: 5 }
+            ];
+            
+            const rooms = [];
+            let roomNumber = 101;
+            
+            roomTypes.forEach(roomType => {
+                for (let i = 0; i < roomType.count; i++) {
+                    rooms.push({
+                        floor: Math.floor(roomNumber / 100),
+                        number: roomNumber.toString(),
+                        type: roomType.type,
+                        price: roomType.price,
+                        status: 'vacant'
+                    });
+                    roomNumber++;
+                }
+            });
+            
+            return rooms;
+        }
+
+        function getRoomTypeStats(roomData, bookedRoomsMap) {
+            const stats = {};
+            
+            roomData.forEach(room => {
+                if (!stats[room.type]) {
+                    stats[room.type] = {
+                        type: room.type,
+                        total: 0,
+                        available: 0,
+                        price: room.price,
+                        monthlyRevenue: 0
+                    };
+                }
+                stats[room.type].total++;
+                if (!bookedRoomsMap.hasOwnProperty(room.number)) {
+                    stats[room.type].available++;
+                }
+            });
+            
+            // Calculate monthly revenue based on actual bookings
+            Object.values(stats).forEach(stat => {
+                const occupiedRooms = stat.total - stat.available;
+                stat.monthlyRevenue = occupiedRooms * stat.price * 30;
+            });
+            
+            return Object.values(stats);
+        }
+
+        function loadRoomStatistics() {
+            const roomData = generateRoomData();
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const approvedReservations = reservations.filter(r => r.status === 'approved');
+            
+            const bookedRooms = approvedReservations.map(r => r.roomNumber).filter(Boolean).length;
+            const vacantRooms = roomData.length - bookedRooms;
+            const occupancyRate = ((bookedRooms / roomData.length) * 100).toFixed(1);
+            
+            document.getElementById('totalRooms').textContent = roomData.length;
+            document.getElementById('vacantRooms').textContent = vacantRooms;
+            document.getElementById('bookedRooms').textContent = bookedRooms;
+            document.getElementById('occupancyRate').textContent = occupancyRate + '%';
+        }
+    </script>
+
+    <style>
+        .status-vacant {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        
+        .status-booked {
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</body>
+</html>

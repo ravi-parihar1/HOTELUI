@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="admin-dashboard.html" class="logo">HotelHub</a>
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html" class="active">Dashboard</a></li>
+                    <li><a href="admin-reservation.html">Reservations</a></li>
+                    <li><a href="admin-billing.html">Billing</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Rooms</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Support</a></li>
+                </ul>
+            </nav>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Admin</span>
+                </div>
+                <a href="#" class="logout-btn btn">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Admin Dashboard</h2>
+            <p>Manage hotel operations and customer services</p>
+        </div>
+
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #4a90e2; margin-bottom: 15px;">📋 Manage Reservations</h3>
+                <p style="margin-bottom: 20px;">Approve or reject customer reservations</p>
+                <a href="admin-reservation.html" class="btn-primary">Manage</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #28a745; margin-bottom: 15px;">💳 Billing & Invoices</h3>
+                <p style="margin-bottom: 20px;">Generate invoices and manage payments</p>
+                <a href="admin-billing.html" class="btn-success">Manage Billing</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #ffc107; margin-bottom: 15px;">🏠 Room Status</h3>
+                <p style="margin-bottom: 20px;">Track room availability and status</p>
+                <a href="room-status.html" class="btn-secondary">View Rooms</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #17a2b8; margin-bottom: 15px;">📅 Booking History</h3>
+                <p style="margin-bottom: 20px;">View customer booking history</p>
+                <a href="admin-booking-history.html" class="btn-secondary">View History</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #6f42c1; margin-bottom: 15px;">📋 All Bookings</h3>
+                <p style="margin-bottom: 20px;">Manage all customer bookings</p>
+                <a href="admin-bookings.html" class="btn-secondary">All Bookings</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #e83e8c; margin-bottom: 15px;">🎧 Customer Support</h3>
+                <p style="margin-bottom: 20px;">Handle customer queries and feedback</p>
+                <a href="admin-customer-support.html" class="btn-secondary">Support Center</a>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="table-container" style="margin-top: 40px;">
+            <h3>System Statistics</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #4a90e2; font-size: 2rem;" id="totalCustomers">0</h4>
+                    <p>Total Customers</p>
+                </div>
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #28a745; font-size: 2rem;" id="totalReservations">0</h4>
+                    <p>Total Reservations</p>
+                </div>
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #ffc107; font-size: 2rem;" id="pendingReservations">0</h4>
+                    <p>Pending Reservations</p>
+                </div>
+                <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                    <h4 style="color: #dc3545; font-size: 2rem;" id="totalRooms">50</h4>
+                    <p>Total Rooms</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reservations Section -->
+        <div class="table-container" style="margin-top: 40px;">
+            <h3>Recent Reservations</h3>
+            <div id="recentReservations">
+                <p style="text-align: center; color: #666; padding: 20px;">No recent reservations to display</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check authentication and load admin data
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadStatistics();
+                loadRecentReservations();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        // Load system statistics
+        function loadStatistics() {
+            const users = JSON.parse(localStorage.getItem('hotelUsers') || '[]');
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            
+            const customerCount = users.filter(u => u.role === 'customer').length;
+            const pendingCount = reservations.filter(r => r.status === 'pending').length;
+            
+            document.getElementById('totalCustomers').textContent = customerCount;
+            document.getElementById('totalReservations').textContent = reservations.length;
+            document.getElementById('pendingReservations').textContent = pendingCount;
+        }
+
+        // Load recent reservations
+        function loadRecentReservations() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            
+            if (reservations.length > 0) {
+                const recentHtml = reservations.slice(-10).reverse().map(reservation => {
+                    const user = getUsers().find(u => u.customerId === reservation.customerId);
+                    return `
+                        <div style="padding: 15px; border-bottom: 1px solid #e0e0e0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <strong>Booking ID:</strong> ${reservation.bookingId}<br>
+                                    <strong>Customer:</strong> ${user ? user.customerName : 'Unknown'}<br>
+                                    <strong>Check-in:</strong> ${reservation.checkInDate}<br>
+                                    <strong>Check-out:</strong> ${reservation.checkOutDate}
+                                </div>
+                                <div>
+                                    <span class="status-${reservation.status}">${reservation.status}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                
+                document.getElementById('recentReservations').innerHTML = recentHtml;
+            }
+        }
+    </script>
+</body>
+</html>

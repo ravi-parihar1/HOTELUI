@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Registration - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Customer Registration</h1>
+            <p>Create your account to access our hotel services</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <div id="successMessage"></div>
+                <div id="errorMessages"></div>
+                
+                <form id="registrationForm">
+                    <h2>Personal Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="customerName">Customer Name:</label>
+                        <input type="text" id="customerName" name="customerName" maxlength="50" required>
+                        <div class="error-message">Maximum 50 characters allowed</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="error-message">Please enter a valid email address</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="mobile">Mobile Number:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <select id="countryCode" name="countryCode" style="flex: 0 0 100px;">
+                                <option value="+91">+91</option>
+                                <option value="+1">+1</option>
+                                <option value="+44">+44</option>
+                                <option value="+61">+61</option>
+                            </select>
+                            <input type="tel" id="mobile" name="mobile" pattern="[0-9]{10}" maxlength="10" required style="flex: 1;">
+                        </div>
+                        <div class="error-message">Please enter exactly 10 digits</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Address:</label>
+                        <textarea id="address" name="address" rows="3" required></textarea>
+                        <div class="error-message">Please enter your complete mailing address</div>
+                    </div>
+                    
+                    <h2 style="margin-top: 30px;">Username and Password</h2>
+                    
+                    <div class="form-group">
+                        <label for="customerId">Customer ID (Auto-Generated):</label>
+                        <input type="text" id="customerId" name="customerId" readonly style="background: #f8f9fa; cursor: not-allowed;">
+                        <div style="color: #666; font-size: 0.9rem; margin-top: 5px;">Customer ID will be automatically generated upon registration</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" minlength="8" maxlength="30" required>
+                        <div class="error-message">Password must contain at least one uppercase, one lowercase, and one special character (8-30 characters)</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm Password:</label>
+                        <input type="password" id="confirmPassword" name="confirmPassword" minlength="8" maxlength="30" required>
+                        <div class="error-message">Password and Confirm Password must match</div>
+                    </div>
+                    
+                    <div class="form-group" style="display: flex; gap: 15px; margin-top: 30px;">
+                        <button type="submit" class="btn-primary">Register</button>
+                        <button type="reset" class="btn-secondary">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

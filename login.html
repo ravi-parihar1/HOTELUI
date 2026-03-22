@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Login to Hotel Management System</h1>
+            <p>Enter your credentials to access your account</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <div id="errorMessages"></div>
+                
+                <form id="loginForm">
+                    <h2>Login</h2>
+                    
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required>
+                        <div class="error-message">Please enter a valid email address</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password">Password:</label>
+                        <input type="password" id="password" name="password" minlength="8" maxlength="30" required>
+                        <div class="error-message">Password must contain at least one uppercase, one lowercase, and one special character (8-30 characters)</div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 30px;">
+                        <button type="submit" class="btn-primary">Login</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <p>Don't have an account? <a href="registration.html" style="color: #4a90e2;">Register here</a></p>
+                    </div>
+                </form>
+                
+                <!-- Default Admin Account Info (for demo purposes) -->
+                <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+                    <h4>Demo Account:</h4>
+                    <p><strong>Admin:</strong> Email: admin@hotel.com, Password: Admin@123 (Customer ID: 1234567890123)</p>
+                    <p><strong>Customer:</strong> Register a new account or use existing credentials</p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Add default admin account if not exists or update existing
+        document.addEventListener('DOMContentLoaded', function() {
+            const users = JSON.parse(localStorage.getItem('hotelUsers') || '[]');
+            const adminIndex = users.findIndex(user => user.email === 'admin@hotel.com');
+            
+            if (adminIndex === -1) {
+                // Create new admin account
+                const adminUser = {
+                    customerName: 'System Administrator',
+                    email: 'admin@hotel.com',
+                    mobile: '9876543210',
+                    address: 'Hotel Office',
+                    customerId: '1234567890123', // 13-digit admin ID
+                    password: 'Admin@123',
+                    role: 'admin',
+                    registrationDate: new Date().toISOString()
+                };
+                users.push(adminUser);
+            } else {
+                // Update existing admin account to have 13-digit Customer ID
+                users[adminIndex].customerId = '1234567890123';
+            }
+            
+            localStorage.setItem('hotelUsers', JSON.stringify(users));
+            
+            // Clear any existing session to force fresh login
+            sessionStorage.removeItem('currentUser');
+        });
+    </script>
+</body>
+</html>

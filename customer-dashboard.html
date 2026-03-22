@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="customer-dashboard.html">Home</a></li>
+                    <li><a href="reservation.html">Reservation</a></li>
+                    <li><a href="billing.html">Billing Page</a></li>
+                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="customer-support.html">Contact Support</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Guest</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="welcome-section">
+            <h2>Welcome to Your Dashboard</h2>
+            <p>Manage your hotel bookings and services from here</p>
+        </div>
+
+        <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 30px;">
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #4a90e2; margin-bottom: 15px;">🏨 Make a Reservation</h3>
+                <p style="margin-bottom: 20px;">Book your room for a comfortable stay</p>
+                <a href="reservation.html" class="btn-primary">Book Now</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #28a745; margin-bottom: 15px;">💳 View Bills</h3>
+                <p style="margin-bottom: 20px;">Check your billing information and payments</p>
+                <a href="billing.html" class="btn-success">View Bills</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #ffc107; margin-bottom: 15px;">📅 Booking History</h3>
+                <p style="margin-bottom: 20px;">View your previous bookings</p>
+                <a href="booking-history.html" class="btn-secondary">View History</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #17a2b8; margin-bottom: 15px;">📋 Upcoming Bookings</h3>
+                <p style="margin-bottom: 20px;">Manage your upcoming reservations</p>
+                <a href="bookings.html" class="btn-secondary">My Bookings</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #6f42c1; margin-bottom: 15px;">🎧 Customer Support</h3>
+                <p style="margin-bottom: 20px;">Get help and provide feedback</p>
+                <a href="customer-support.html" class="btn-secondary">Get Support</a>
+            </div>
+
+            <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;">
+                <h3 style="color: #e83e8c; margin-bottom: 15px;">👤 My Profile</h3>
+                <p style="margin-bottom: 20px;">View and update your profile information</p>
+                <button class="btn-secondary" onclick="showProfile()">View Profile</button>
+            </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="table-container" style="margin-top: 40px;">
+            <h3>Recent Activity</h3>
+            <div id="recentActivity">
+                <p style="text-align: center; color: #666; padding: 20px;">No recent activity to display</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeProfileModal()">&times;</span>
+            <h2>My Profile</h2>
+            <div id="profileInfo"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Check authentication and load user data
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.customerName;
+                loadRecentActivity();
+                showCheckoutNotification(); // Show checkout notification if available
+            }
+        });
+
+        // Load recent activity
+        function loadRecentActivity() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const userReservations = reservations.filter(r => r.customerId === currentUser.customerId);
+            
+            if (userReservations.length > 0) {
+                const recentHtml = userReservations.slice(-5).reverse().map(reservation => `
+                    <div style="padding: 15px; border-bottom: 1px solid #e0e0e0;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <strong>Booking ID:</strong> ${reservation.bookingId}<br>
+                                <strong>Check-in:</strong> ${reservation.checkInDate}<br>
+                                <strong>Check-out:</strong> ${reservation.checkOutDate}
+                            </div>
+                            <div>
+                                <span class="status-${reservation.status}">${reservation.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('recentActivity').innerHTML = recentHtml;
+            }
+        }
+
+        // Show profile modal
+        function showProfile() {
+            const modal = document.getElementById('profileModal');
+            const profileInfo = document.getElementById('profileInfo');
+            
+            profileInfo.innerHTML = `
+                <div style="margin-top: 20px;">
+                    <p><strong>Name:</strong> ${currentUser.customerName}</p>
+                    <p><strong>Email:</strong> ${currentUser.email}</p>
+                    <p><strong>Mobile:</strong> ${currentUser.mobile}</p>
+                    <p><strong>Address:</strong> ${currentUser.address}</p>
+                    <p><strong>Customer ID:</strong> ${currentUser.customerId}</p>
+                    <p><strong>Member Since:</strong> ${new Date(currentUser.registrationDate).toLocaleDateString()}</p>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+
+        // Close profile modal
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('profileModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

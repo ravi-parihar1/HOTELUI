@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Bookings - Admin Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="admin-dashboard.html">Home</a></li>
+                    <li><a href="admin-reservation.html">Reservation</a></li>
+                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-booking-history.html">History</a></li>
+                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="admin-bookings.html">Bookings</a></li>
+                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Admin</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>All Customer Bookings</h1>
+            <p>Manage and monitor all customer reservations</p>
+        </header>
+        
+        <main>
+            <div class="table-container">
+                <h3>Filter Bookings</h3>
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <select id="statusFilter" onchange="filterBookings()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                    <select id="roomTypeFilter" onchange="filterBookings()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="">All Room Types</option>
+                        <option value="standard">Standard</option>
+                        <option value="deluxe">Deluxe</option>
+                        <option value="suite">Suite</option>
+                        <option value="presidential">Presidential</option>
+                    </select>
+                    <input type="date" id="dateFilter" onchange="filterBookings()" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                    <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <h3>All Bookings</h3>
+                <div id="allBookings">
+                    <p style="text-align: center; color: #666; padding: 20px;">Loading all bookings...</p>
+                </div>
+            </div>
+
+            <div class="table-container" style="margin-top: 40px;">
+                <h3>Booking Statistics</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 20px;">
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #4a90e2; font-size: 2rem;" id="totalBookings">0</h4>
+                        <p>Total Bookings</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #ffc107; font-size: 2rem;" id="pendingBookings">0</h4>
+                        <p>Pending Approval</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #28a745; font-size: 2rem;" id="approvedBookings">0</h4>
+                        <p>Approved Bookings</p>
+                    </div>
+                    <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                        <h4 style="color: #17a2b8; font-size: 2rem;" id="totalRevenue">$0</h4>
+                        <p>Total Revenue</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        let allBookingsData = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user && user.role === 'admin') {
+                document.getElementById('username').textContent = user.customerName;
+                loadAllBookings();
+                loadBookingStatistics();
+            } else {
+                window.location.href = 'login.html';
+            }
+        });
+
+        function loadAllBookings() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            allBookingsData = reservations;
+            
+            if (reservations.length === 0) {
+                document.getElementById('allBookings').innerHTML = 
+                    '<p style="text-align: center; color: #666; padding: 20px;">No bookings found</p>';
+                return;
+            }
+
+            // Sort by booking date (newest first)
+            reservations.sort((a, b) => new Date(b.bookingDate) - new Date(a.bookingDate));
+
+            displayBookings(reservations);
+        }
+
+        function displayBookings(bookings) {
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Booking ID</th>
+                            <th>Customer Name</th>
+                            <th>Customer ID</th>
+                            <th>Check-in</th>
+                            <th>Check-out</th>
+                            <th>Room Type</th>
+                            <th>Room Number</th>
+                            <th>Bill Amount</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Booking Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${bookings.map(reservation => {
+                            const user = getUsers().find(u => u.customerId === reservation.customerId);
+                            const bookingDate = new Date(reservation.bookingDate).toLocaleDateString();
+                            return `
+                                <tr>
+                                    <td>${reservation.bookingId}</td>
+                                    <td>${user ? user.customerName : 'Unknown'}</td>
+                                    <td>${reservation.customerId}</td>
+                                    <td>${reservation.checkInDate}</td>
+                                    <td>${reservation.checkOutDate}</td>
+                                    <td>${reservation.roomPreference}</td>
+                                    <td>${reservation.roomNumber || 'Not assigned'}</td>
+                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td><span class="status-${reservation.status}">${reservation.status}</span></td>
+                                    <td><span class="status-${reservation.paid ? 'paid' : 'pending'}">${reservation.paid ? 'Paid' : 'Pending'}</span></td>
+                                    <td>${bookingDate}</td>
+                                    <td>
+                                        ${reservation.status === 'pending' ? 
+                                            `<button class="btn-success" onclick="quickApprove('${reservation.bookingId}')">Approve</button>
+                                             <button class="btn-danger" onclick="quickReject('${reservation.bookingId}')">Reject</button>` :
+                                            `<button class="btn-secondary" onclick="viewBookingDetails('${reservation.bookingId}')">View</button>`
+                                        }
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            document.getElementById('allBookings').innerHTML = html;
+        }
+
+        function filterBookings() {
+            const statusFilter = document.getElementById('statusFilter').value;
+            const roomTypeFilter = document.getElementById('roomTypeFilter').value;
+            const dateFilter = document.getElementById('dateFilter').value;
+            
+            let filteredBookings = allBookingsData;
+            
+            if (statusFilter) {
+                filteredBookings = filteredBookings.filter(r => r.status === statusFilter);
+            }
+            
+            if (roomTypeFilter) {
+                filteredBookings = filteredBookings.filter(r => r.roomPreference === roomTypeFilter);
+            }
+            
+            if (dateFilter) {
+                filteredBookings = filteredBookings.filter(r => r.checkInDate === dateFilter);
+            }
+            
+            displayBookings(filteredBookings);
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('roomTypeFilter').value = '';
+            document.getElementById('dateFilter').value = '';
+            displayBookings(allBookingsData);
+        }
+
+        function quickApprove(bookingId) {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            const reservationIndex = reservations.findIndex(r => r.bookingId === bookingId);
+            
+            if (reservationIndex !== -1) {
+                reservations[reservationIndex].status = 'approved';
+                reservations[reservationIndex].roomNumber = generateRoomNumber();
+                localStorage.setItem('reservations', JSON.stringify(reservations));
+                
+                showNotification('Booking approved successfully!');
+                loadAllBookings();
+                loadBookingStatistics();
+            }
+        }
+
+        function quickReject(bookingId) {
+            if (confirm('Are you sure you want to reject this booking?')) {
+                const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+                const reservationIndex = reservations.findIndex(r => r.bookingId === bookingId);
+                
+                if (reservationIndex !== -1) {
+                    reservations[reservationIndex].status = 'rejected';
+                    localStorage.setItem('reservations', JSON.stringify(reservations));
+                    
+                    showNotification('Booking rejected');
+                    loadAllBookings();
+                    loadBookingStatistics();
+                }
+            }
+        }
+
+        function viewBookingDetails(bookingId) {
+            const reservation = allBookingsData.find(r => r.bookingId === bookingId);
+            if (reservation) {
+                const user = getUsers().find(u => u.customerId === reservation.customerId);
+                const details = `
+                    Booking ID: ${reservation.bookingId}
+                    Customer: ${user ? user.customerName : 'Unknown'}
+                    Email: ${user ? user.email : 'N/A'}
+                    Phone: ${user ? user.mobile : 'N/A'}
+                    Check-in: ${reservation.checkInDate}
+                    Check-out: ${reservation.checkOutDate}
+                    Room Type: ${reservation.roomPreference}
+                    Room Number: ${reservation.roomNumber || 'Not assigned'}
+                    Bill Amount: $${reservation.billAmount || 0}
+                    Status: ${reservation.status}
+                    Payment: ${reservation.paid ? 'Paid' : 'Pending'}
+                    Booking Date: ${new Date(reservation.bookingDate).toLocaleDateString()}
+                `;
+                alert(details);
+            }
+        }
+
+        function loadBookingStatistics() {
+            const reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            
+            const totalBookings = reservations.length;
+            const pendingBookings = reservations.filter(r => r.status === 'pending').length;
+            const approvedBookings = reservations.filter(r => r.status === 'approved').length;
+            const totalRevenue = reservations.reduce((sum, r) => sum + (r.billAmount || 0), 0);
+            
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('pendingBookings').textContent = pendingBookings;
+            document.getElementById('approvedBookings').textContent = approvedBookings;
+            document.getElementById('totalRevenue').textContent = '$' + totalRevenue;
+        }
+
+        function generateRoomNumber() {
+            const floor = Math.floor(Math.random() * 5) + 1;
+            const room = Math.floor(Math.random() * 20) + 1;
+            return `${floor}0${room}`;
+        }
+    </script>
+
+    <style>
+        .status-paid {
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+    </style>
+</body>
+</html>

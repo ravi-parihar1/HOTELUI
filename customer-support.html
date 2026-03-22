@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Support - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="customer-dashboard.html">Home</a></li>
+                    <li><a href="reservation.html">Reservation</a></li>
+                    <li><a href="billing.html">Billing Page</a></li>
+                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="customer-support.html">Contact Support</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Guest</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Customer Support</h1>
+            <p>We're here to help you 24/7</p>
+        </header>
+        
+        <main>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px;">
+                <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3 style="color: #4a90e2; margin-bottom: 20px;">📞 Contact Information</h3>
+                    <div style="line-height: 1.8;">
+                        <p><strong>24/7 Helpline:</strong> +1-800-HOTEL-HELP</p>
+                        <p><strong>Email Support:</strong> support@hotel.com</p>
+                        <p><strong>Address:</strong> 123 Hotel Street, City, State 12345</p>
+                        <p><strong>Working Hours:</strong> 24/7 Customer Service</p>
+                    </div>
+                </div>
+
+                <div class="dashboard-card" style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3 style="color: #28a745; margin-bottom: 20px;">💬 Quick Actions</h3>
+                    <div style="display: flex; flex-direction: column; gap: 15px;">
+                        <button class="btn-primary" onclick="showComplaintForm()">Register Complaint</button>
+                        <button class="btn-secondary" onclick="showFeedbackForm()">Provide Feedback</button>
+                        <button class="btn-secondary" onclick="showEmergencyContact()">Emergency Contact</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-container" id="complaintForm" style="display: none;">
+                <h3>Register a Complaint</h3>
+                <form id="complaintRegistrationForm">
+                    <div class="form-group">
+                        <label for="complaintType">Type of Complaint:</label>
+                        <select id="complaintType" name="complaintType" required>
+                            <option value="">Select complaint type</option>
+                            <option value="room-service">Room Service</option>
+                            <option value="cleanliness">Cleanliness</option>
+                            <option value="staff-behavior">Staff Behavior</option>
+                            <option value="billing">Billing Issue</option>
+                            <option value="amenities">Amenities</option>
+                            <option value="noise">Noise Issue</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roomNumber">Room Number (if applicable):</label>
+                        <input type="text" id="roomNumber" name="roomNumber">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="complaintDetails">Complaint Details:</label>
+                        <textarea id="complaintDetails" name="complaintDetails" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="complaintContact">Contact Number:</label>
+                        <input type="tel" id="complaintContact" name="complaintContact" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="complaintCustomerId">Customer ID:</label>
+                        <input type="text" id="complaintCustomerId" name="complaintCustomerId" required readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn-primary">Submit Complaint</button>
+                        <button type="button" class="btn-secondary" onclick="hideComplaintForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="form-container" id="feedbackForm" style="display: none;">
+                <h3>Provide Feedback</h3>
+                <form id="feedbackRegistrationForm">
+                    <div class="form-group">
+                        <label for="serviceRating">Service Rating:</label>
+                        <select id="serviceRating" name="serviceRating" required>
+                            <option value="">Rate our service</option>
+                            <option value="5">⭐⭐⭐⭐⭐ Excellent</option>
+                            <option value="4">⭐⭐⭐⭐ Very Good</option>
+                            <option value="3">⭐⭐⭐ Good</option>
+                            <option value="2">⭐⭐ Fair</option>
+                            <option value="1">⭐ Poor</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feedbackComments">Your Comments:</label>
+                        <textarea id="feedbackComments" name="feedbackComments" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feedbackContact">Contact Number:</label>
+                        <input type="tel" id="feedbackContact" name="feedbackContact" pattern="[0-9]{10}" maxlength="10" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feedbackCustomerId">Customer ID:</label>
+                        <input type="text" id="feedbackCustomerId" name="feedbackCustomerId" required readonly>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn-primary">Submit Feedback</button>
+                        <button type="button" class="btn-secondary" onclick="hideFeedbackForm()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="table-container">
+                <h3>Frequently Asked Questions</h3>
+                <div style="margin-top: 20px;">
+                    <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>Q: How do I cancel my reservation?</h4>
+                        <p>A: You can cancel your reservation by calling our 24/7 helpline or through your customer dashboard. Cancellation policies apply.</p>
+                    </div>
+                    <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>Q: What is the check-in/check-out time?</h4>
+                        <p>A: Check-in time is 3:00 PM and check-out time is 11:00 AM. Early check-in and late check-out may be available upon request.</p>
+                    </div>
+                    <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>Q: Is parking available?</h4>
+                        <p>A: Yes, we offer complimentary parking for all our guests. Valet service is also available.</p>
+                    </div>
+                    <div style="margin-bottom: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                        <h4>Q: Do you offer airport shuttle service?</h4>
+                        <p>A: Yes, we provide airport shuttle service. Please contact us in advance to arrange your pickup.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.customerName;
+                // Pre-fill customer ID in forms
+                document.getElementById('complaintCustomerId').value = user.customerId;
+                document.getElementById('feedbackCustomerId').value = user.customerId;
+                document.getElementById('complaintContact').value = user.mobile;
+                document.getElementById('feedbackContact').value = user.mobile;
+            }
+            
+            // Add form submission handlers
+            const complaintForm = document.getElementById('complaintRegistrationForm');
+            if (complaintForm) {
+                complaintForm.addEventListener('submit', handleComplaintSubmission);
+            }
+            
+            const feedbackForm = document.getElementById('feedbackRegistrationForm');
+            if (feedbackForm) {
+                feedbackForm.addEventListener('submit', handleFeedbackSubmission);
+            }
+        });
+
+        function showComplaintForm() {
+            document.getElementById('complaintForm').style.display = 'block';
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('complaintForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideComplaintForm() {
+            document.getElementById('complaintForm').style.display = 'none';
+        }
+
+        function showFeedbackForm() {
+            document.getElementById('feedbackForm').style.display = 'block';
+            document.getElementById('complaintForm').style.display = 'none';
+            document.getElementById('feedbackForm').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideFeedbackForm() {
+            document.getElementById('feedbackForm').style.display = 'none';
+        }
+
+        function showEmergencyContact() {
+            showNotification('For emergencies, please call: 911 or our 24/7 helpline: +1-800-HOTEL-HELP');
+        }
+
+        function handleComplaintSubmission(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const complaintData = {
+                id: 'COMP' + Date.now(),
+                customerId: form.complaintCustomerId.value,
+                type: form.complaintType.value,
+                roomNumber: form.roomNumber.value,
+                details: form.complaintDetails.value,
+                contact: form.complaintContact.value,
+                submittedDate: new Date().toISOString(),
+                status: 'pending'
+            };
+            
+            // Store complaint
+            let complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
+            complaints.push(complaintData);
+            localStorage.setItem('complaints', JSON.stringify(complaints));
+            
+            showNotification('Complaint registered successfully! We will address your concern within 24 hours.');
+            form.reset();
+            
+            // Re-fill customer ID and contact
+            document.getElementById('complaintCustomerId').value = currentUser.customerId;
+            document.getElementById('complaintContact').value = currentUser.mobile;
+            
+            hideComplaintForm();
+        }
+
+        function handleFeedbackSubmission(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const feedbackData = {
+                id: 'FB' + Date.now(),
+                customerId: form.feedbackCustomerId.value,
+                rating: form.serviceRating.value,
+                comments: form.feedbackComments.value,
+                contact: form.feedbackContact.value,
+                submittedDate: new Date().toISOString()
+            };
+            
+            // Store feedback
+            let feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
+            feedbacks.push(feedbackData);
+            localStorage.setItem('feedbacks', JSON.stringify(feedbacks));
+            
+            showNotification('Thank you for your feedback! We appreciate your input and will use it to improve our services.');
+            form.reset();
+            
+            // Re-fill customer ID and contact
+            document.getElementById('feedbackCustomerId').value = currentUser.customerId;
+            document.getElementById('feedbackContact').value = currentUser.mobile;
+            
+            hideFeedbackForm();
+        }
+    </script>
+</body>
+</html>

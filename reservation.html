@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Make Reservation - Hotel Management System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <nav>
+                <ul>
+                    <li><a href="customer-dashboard.html">Home</a></li>
+                    <li><a href="reservation.html">Reservation</a></li>
+                    <li><a href="billing.html">Billing Page</a></li>
+                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="customer-support.html">Contact Support</a></li>
+                    <li><a href="#" class="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+            <div class="user-info">
+                Welcome <span id="username">Guest</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1>Make a Reservation</h1>
+            <p>Book your room for a comfortable stay</p>
+        </header>
+        
+        <main>
+            <div class="form-container">
+                <div id="successMessage"></div>
+                <div id="errorMessages"></div>
+                
+                <form id="reservationForm">
+                    <h2>Reservation Details</h2>
+                    
+                    <div class="form-group">
+                        <label for="checkInDate">Check-in Date:</label>
+                        <input type="date" id="checkInDate" name="checkInDate" required>
+                        <div class="error-message">Please select a valid check-in date</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="checkOutDate">Check-out Date:</label>
+                        <input type="date" id="checkOutDate" name="checkOutDate" required>
+                        <div class="error-message">Please select a valid check-out date</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="roomPreference">Room Preference:</label>
+                        <select id="roomPreference" name="roomPreference" required>
+                            <option value="">Select a room type</option>
+                            <option value="standard">Standard Room - $100/night</option>
+                            <option value="deluxe">Deluxe Room - $150/night</option>
+                            <option value="suite">Suite - $250/night</option>
+                            <option value="presidential">Presidential Suite - $500/night</option>
+                        </select>
+                        <div class="error-message">Please select a room preference</div>
+                    </div>
+                    
+                    <h2 style="margin-top: 30px;">Personal Information</h2>
+                    
+                    <div class="form-group">
+                        <label for="name">Name:</label>
+                        <input type="text" id="name" name="name" required>
+                        <div class="error-message">Please enter your name</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="contact">Contact Number:</label>
+                        <input type="tel" id="contact" name="contact" pattern="[0-9]{10}" maxlength="10" required>
+                        <div class="error-message">Please enter a valid 10-digit contact number</div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 30px;">
+                        <button type="submit" class="btn-primary">Make Reservation</button>
+                        <button type="reset" class="btn-secondary">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Check authentication and load user data
+        document.addEventListener('DOMContentLoaded', function() {
+            const user = checkAuth();
+            if (user) {
+                document.getElementById('username').textContent = user.customerName;
+                // Pre-fill personal information
+                document.getElementById('name').value = user.customerName;
+                document.getElementById('contact').value = user.mobile;
+                
+                // Set minimum date to today
+                const today = new Date().toISOString().split('T')[0];
+                document.getElementById('checkInDate').min = today;
+                document.getElementById('checkOutDate').min = today;
+            }
+            
+            // Add form submission handler
+            const form = document.getElementById('reservationForm');
+            if (form) {
+                form.addEventListener('submit', handleReservation);
+            }
+        });
+
+        // Validate dates
+        document.getElementById('checkInDate')?.addEventListener('change', function() {
+            const checkInDate = this.value;
+            const checkOutInput = document.getElementById('checkOutDate');
+            checkOutInput.min = checkInDate;
+            
+            if (checkOutInput.value && checkOutInput.value <= checkInDate) {
+                checkOutInput.value = '';
+            }
+        });
+
+        // Enhanced reservation validation
+        function validateReservationForm() {
+            const form = document.getElementById('reservationForm');
+            const errors = [];
+            
+            const checkInDate = form.checkInDate.value;
+            const checkOutDate = form.checkOutDate.value;
+            const roomPreference = form.roomPreference.value;
+            const name = form.name.value.trim();
+            const contact = form.contact.value.trim();
+            
+            if (!checkInDate) {
+                errors.push('Please select a check-in date');
+            }
+            
+            if (!checkOutDate) {
+                errors.push('Please select a check-out date');
+            }
+            
+            if (checkInDate && checkOutDate && new Date(checkOutDate) <= new Date(checkInDate)) {
+                errors.push('Check-out date must be after check-in date');
+            }
+            
+            if (!roomPreference) {
+                errors.push('Please select a room preference');
+            }
+            
+            if (!name) {
+                errors.push('Please enter your name');
+            }
+            
+            if (!contact || !/^\d{10}$/.test(contact)) {
+                errors.push('Please enter a valid 10-digit contact number');
+            }
+            
+            const errorDiv = document.getElementById('errorMessages');
+            if (errors.length > 0) {
+                errorDiv.innerHTML = errors.map(error => `<div class="error-message" style="display: block;">${error}</div>`).join('');
+                return false;
+            }
+            
+            errorDiv.innerHTML = '';
+            return true;
+        }
+
+        // Override the handleReservation function for specific validation
+        function handleReservation(event) {
+            event.preventDefault();
+            
+            if (!validateReservationForm()) {
+                return;
+            }
+            
+            const form = document.getElementById('reservationForm');
+            const reservation = {
+                bookingId: generateBookingId(),
+                checkInDate: form.checkInDate.value,
+                checkOutDate: form.checkOutDate.value,
+                roomPreference: form.roomPreference.value,
+                name: form.name.value.trim(),
+                contact: form.contact.value.trim(),
+                customerId: currentUser.customerId,
+                bookingDate: new Date().toISOString(),
+                status: 'pending',
+                roomNumber: null,
+                billAmount: calculateRoomCost(form.checkInDate.value, form.checkOutDate.value, form.roomPreference.value)
+            };
+            
+            // Store reservation
+            let reservations = JSON.parse(localStorage.getItem('reservations') || '[]');
+            reservations.push(reservation);
+            localStorage.setItem('reservations', JSON.stringify(reservations));
+            
+            // Show success message
+            const successDiv = document.getElementById('successMessage');
+            successDiv.innerHTML = `
+                <div class="success-message">
+                    <h3>Reservation Successful!</h3>
+                    <p><strong>Booking ID:</strong> ${reservation.bookingId}</p>
+                    <p>Your reservation is pending approval. You will be notified once it's confirmed.</p>
+                </div>
+            `;
+            
+            // Reset form
+            form.reset();
+            
+            // Redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = 'customer-dashboard.html';
+            }, 3000);
+        }
+
+        // Calculate room cost based on dates and room type
+        function calculateRoomCost(checkInDate, checkOutDate, roomType) {
+            const start = new Date(checkInDate);
+            const end = new Date(checkOutDate);
+            const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+            
+            const roomPrices = {
+                'standard': 100,
+                'deluxe': 150,
+                'suite': 250,
+                'presidential': 500
+            };
+            
+            return nights * (roomPrices[roomType] || 100);
+        }
+    </script>
+</body>
+</html>
