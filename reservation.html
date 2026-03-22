@@ -56,10 +56,10 @@
                         <label for="roomPreference">Room Preference:</label>
                         <select id="roomPreference" name="roomPreference" required>
                             <option value="">Select a room type</option>
-                            <option value="standard">Standard Room - $100/night</option>
-                            <option value="deluxe">Deluxe Room - $150/night</option>
-                            <option value="suite">Suite - $250/night</option>
-                            <option value="presidential">Presidential Suite - $500/night</option>
+                            <option value="standard">Standard Room - ₹8,000/night</option>
+                            <option value="deluxe">Deluxe Room - ₹12,000/night</option>
+                            <option value="suite">Suite Room - ₹20,000/night</option>
+                            <option value="presidential">Presidential Suite - ₹40,000/night</option>
                         </select>
                         <div class="error-message">Please select a room preference</div>
                     </div>
@@ -196,13 +196,17 @@
             reservations.push(reservation);
             localStorage.setItem('reservations', JSON.stringify(reservations));
             
-            // Show success message
+            // Show success popup
+            const successMessage = `Reservation Successful!\n\nBooking ID: ${reservation.bookingId}\n\nYour reservation is pending approval. You will be notified once it's confirmed.`;
+            showNotification(successMessage, 'success', 'Reservation Successful!');
+            
+            // Also show minimal success info on page
             const successDiv = document.getElementById('successMessage');
             successDiv.innerHTML = `
                 <div class="success-message">
-                    <h3>Reservation Successful!</h3>
-                    <p><strong>Booking ID:</strong> ${reservation.bookingId}</p>
-                    <p>Your reservation is pending approval. You will be notified once it's confirmed.</p>
+                    <h3>Reservation Submitted!</h3>
+                    <p>Booking ID: ${reservation.bookingId}</p>
+                    <p>Status: Pending Approval</p>
                 </div>
             `;
             
@@ -222,13 +226,13 @@
             const nights = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
             
             const roomPrices = {
-                'standard': 100,
-                'deluxe': 150,
-                'suite': 250,
-                'presidential': 500
+                'standard': 8000,
+                'deluxe': 12000,
+                'suite': 20000,
+                'presidential': 40000
             };
             
-            return nights * (roomPrices[roomType] || 100);
+            return nights * (roomPrices[roomType] || 8000);
         }
     </script>
 </body>

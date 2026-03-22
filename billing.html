@@ -94,7 +94,7 @@
                                     <td>${reservation.checkOutDate}</td>
                                     <td>${reservation.roomPreference}</td>
                                     <td>${reservation.roomNumber || 'Not assigned'}</td>
-                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td>₹${reservation.billAmount || 0}</td>
                                     <td><span class="status-${isPaid ? 'paid' : 'pending'}">${isPaid ? 'Paid' : 'Pending'}</span></td>
                                     <td>
                                         ${!isPaid ? `<button class="btn-primary" onclick="payBill('${reservation.bookingId}', ${reservation.billAmount || 0})">Pay Now</button>` : '<span style="color: #28a745;">Paid</span>'}
@@ -135,7 +135,7 @@
                             <tr>
                                 <td>${payment.transactionId}</td>
                                 <td>${payment.bookingId}</td>
-                                <td>$${payment.amount}</td>
+                                <td>₹${payment.amount}</td>
                                 <td>${new Date(payment.paymentDate).toLocaleDateString()}</td>
                                 <td><span class="status-success">Success</span></td>
                             </tr>
@@ -177,5 +177,7 @@
             font-size: 0.85rem;
         }
     </style>
+    <script src="notification-popup.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -173,7 +173,7 @@
                                         <td>${room.number}</td>
                                         <td>${room.type}</td>
                                         <td><span class="status-${statusClass}">${statusText}</span></td>
-                                        <td>$${room.price}</td>
+                                        <td>₹${room.price}</td>
                                         <td>${bookingInfo.customerName} (${bookingInfo.customerId})</td>
                                         <td>${bookingInfo.bookingId}</td>
                                     </tr>
@@ -185,7 +185,7 @@
                                         <td>${room.number}</td>
                                         <td>${room.type}</td>
                                         <td><span class="status-${statusClass}">${statusText}</span></td>
-                                        <td>$${room.price}</td>
+                                        <td>₹${room.price}</td>
                                         <td>-</td>
                                         <td>-</td>
                                     </tr>
@@ -218,8 +218,8 @@
                                     <td>${stat.total}</td>
                                     <td>${stat.available}</td>
                                     <td>${booked}</td>
-                                    <td>$${stat.price}</td>
-                                    <td>$${stat.monthlyRevenue}</td>
+                                    <td>₹${stat.price}</td>
+                                    <td>₹${stat.monthlyRevenue}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -353,7 +353,7 @@
                                     <td>${room.number} 🏠</td>
                                     <td>${room.type}</td>
                                     <td><span class="status-${statusClass}">${statusText}</span></td>
-                                    <td>$${room.price}</td>
+                                    <td>₹${room.price}</td>
                                     <td>${reservation.bookingId}</td>
                                     <td>${checkInDate}</td>
                                     <td>${checkOutDate}</td>
@@ -471,7 +471,7 @@
                                         <td>${room.number}</td>
                                         <td>${room.type}</td>
                                         <td><span class="status-${statusClass}">${statusText}</span></td>
-                                        <td>$${room.price}</td>
+                                        <td>₹${room.price}</td>
                                         <td>${bookingInfo.customerName} (${bookingInfo.customerId})</td>
                                         <td>${bookingInfo.bookingId}</td>
                                     </tr>
@@ -483,7 +483,7 @@
                                         <td>${room.number}</td>
                                         <td>${room.type}</td>
                                         <td><span class="status-${statusClass}">${statusText}</span></td>
-                                        <td>$${room.price}</td>
+                                        <td>₹${room.price}</td>
                                         <td>-</td>
                                         <td>-</td>
                                     </tr>
@@ -516,8 +516,8 @@
                                     <td>${stat.total}</td>
                                     <td>${stat.available}</td>
                                     <td>${booked}</td>
-                                    <td>$${stat.price}</td>
-                                    <td>$${stat.monthlyRevenue}</td>
+                                    <td>₹${stat.price}</td>
+                                    <td>₹${stat.monthlyRevenue}</td>
                                 </tr>
                             `;
                         }).join('')}
@@ -534,10 +534,10 @@
 
         function generateRoomData() {
             const roomTypes = [
-                { type: 'Standard', price: 100, count: 20 },
-                { type: 'Deluxe', price: 150, count: 15 },
-                { type: 'Suite', price: 250, count: 10 },
-                { type: 'Presidential', price: 500, count: 5 }
+                { type: 'Standard', price: 8000, count: 20 },
+                { type: 'Deluxe', price: 12000, count: 15 },
+                { type: 'Suite', price: 20000, count: 10 },
+                { type: 'Presidential', price: 40000, count: 5 }
             ];
             
             const rooms = [];

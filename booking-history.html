@@ -52,7 +52,7 @@
                         <p>Completed Stays</p>
                     </div>
                     <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                        <h4 style="color: #ffc107; font-size: 2rem;" id="totalSpent">$0</h4>
+                        <h4 style="color: #ffc107; font-size: 2rem;" id="totalSpent">₹0</h4>
                         <p>Total Amount Spent</p>
                     </div>
                     <div style="text-align: center; padding: 20px; background: #f8f9fa; border-radius: 10px;">
@@ -142,7 +142,7 @@
             
             document.getElementById('totalBookings').textContent = totalBookings;
             document.getElementById('completedBookings').textContent = completedBookings;
-            document.getElementById('totalSpent').textContent = '$' + totalSpent;
+            document.getElementById('totalSpent').textContent = '₹' + totalSpent;
             document.getElementById('averageStay').textContent = averageStay;
         }
 
@@ -170,5 +170,7 @@
             font-size: 0.85rem;
         }
     </style>
+    <script src="notification-popup.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
