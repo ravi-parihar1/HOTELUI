@@ -10,7 +10,6 @@
     <nav class="navbar">
         <div class="container">
             <a href="admin-dashboard.html" class="logo">HotelHub</a>
-            <button class="mobile-menu-btn" onclick="toggleMobileDrawer()">☰</button>
             <nav>
                 <ul>
                     <li><a href="admin-dashboard.html" class="active">Dashboard</a></li>
@@ -30,34 +29,6 @@
             </div>
         </div>
     </nav>
-    
-    <!-- Mobile Drawer -->
-    <div class="mobile-drawer" id="mobileDrawer">
-        <div class="drawer-header">
-            <a href="admin-dashboard.html" class="logo">HotelHub</a>
-            <button class="close-drawer" onclick="toggleMobileDrawer()">×</button>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="admin-dashboard.html" class="active">Dashboard</a></li>
-                <li><a href="admin-reservation.html">Reservations</a></li>
-                <li><a href="admin-billing.html">Billing</a></li>
-                <li><a href="admin-booking-history.html">History</a></li>
-                <li><a href="room-status.html">Rooms</a></li>
-                <li><a href="admin-bookings.html">Bookings</a></li>
-                <li><a href="admin-customer-support.html">Support</a></li>
-            </ul>
-        </nav>
-        <div class="user-section">
-            <div class="user-info">
-                Welcome <span id="username">Admin</span>
-            </div>
-            <a href="#" class="logout-btn">Logout</a>
-        </div>
-    </div>
-    
-    <!-- Drawer Overlay -->
-    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleMobileDrawer()"></div>
     
     <!-- Mobile Drawer -->
     <div class="mobile-drawer" id="mobileDrawer">
@@ -219,36 +190,5 @@
         }
     </script>
     <script src="notification-popup.js"></script>
-    
-    <script>
-        // Mobile Drawer Toggle
-        function toggleMobileDrawer() {
-            const drawer = document.getElementById('mobileDrawer');
-            const overlay = document.getElementById('drawerOverlay');
-            
-            if (drawer && overlay) {
-                if (drawer.classList.contains('active')) {
-                    drawer.classList.remove('active');
-                    overlay.classList.remove('active');
-                } else {
-                    drawer.classList.add('active');
-                    overlay.classList.add('active');
-                }
-            }
-        }
-        
-        // Close drawer when clicking outside
-        document.addEventListener('click', function(event) {
-            const drawer = document.getElementById('mobileDrawer');
-            const overlay = document.getElementById('drawerOverlay');
-            
-            if (drawer && overlay) {
-                if (!drawer.contains(event.target) && !overlay.contains(event.target)) {
-                    drawer.classList.remove('active');
-                    overlay.classList.remove('active');
-                }
-            }
-        });
-    </script>
 </body>
 </html>

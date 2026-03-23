@@ -294,33 +294,56 @@
             const feedbacks = JSON.parse(localStorage.getItem('feedbacks') || '[]');
             const complaints = JSON.parse(localStorage.getItem('complaints') || '[]');
             
-            const feedback = feedbacks.find(f => f.id === feedbackId) || complaints.find(c => c.id === feedbackId);
+            // First try to find in feedbacks
+            let feedback = feedbacks.find(f => f.id === feedbackId);
+            let isComplaint = false;
+            
+            // If not found in feedbacks, try complaints
+            if (!feedback) {
+                feedback = complaints.find(c => c.id === feedbackId);
+                isComplaint = true;
+            }
             
             if (feedback) {
                 const customer = getUsers().find(u => u.customerId === feedback.customerId);
                 const customerName = customer ? customer.customerName : 'Unknown';
                 
-                // Handle different field names
-                const message = feedback.details || feedback.comments || 'No message';
-                const category = feedback.type === 'complaint' ? feedback.complaintType : 'General';
-                const date = feedback.submittedDate || feedback.timestamp || new Date().toISOString();
+                // Handle different field names based on type
+                let message, category, type;
                 
-                alert(`
-                    Feedback Details:
+                if (isComplaint) {
+                    message = feedback.details || 'No message';
+                    category = feedback.complaintType || 'General';
+                    type = 'COMPLAINT';
+                } else {
+                    message = feedback.comments || 'No message';
+                    category = feedback.rating || 'General';
+                    type = 'FEEDBACK';
+                }
+                
+                const date = feedback.submittedDate || feedback.timestamp || new Date().toISOString();
+                const status = feedback.status || 'submitted';
+                
+                const details = `
+                    ${type} Details:
                     ------------------
                     Date: ${new Date(date).toLocaleString()}
                     Customer: ${customerName} (${feedback.customerId})
-                    Type: ${feedback.type.toUpperCase()}
+                    Type: ${type}
                     Category: ${category}
                     Room: ${feedback.roomNumber || 'N/A'}
-                    Status: ${feedback.status}
+                    Status: ${status}
                     
                     Message:
                     ${message}
                     
                     Contact: ${customer ? customer.email : 'N/A'}
                     Mobile: ${customer ? customer.mobile : 'N/A'}
-                `);
+                `;
+                
+                showNotification(details, 'info', `${type} Details`);
+            } else {
+                showNotification('Feedback/Complaint not found', 'error', 'Error');
             }
         }
 
