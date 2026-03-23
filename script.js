@@ -37,7 +37,181 @@ function generateTransactionId() {
     return 'TXN' + Math.random().toString(36).substr(2, 12).toUpperCase();
 }
 
-// Show notification - Updated to use popup system
+// Field Validation Utility
+function showFieldError(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const formGroup = field.closest('.form-group');
+    
+    // Remove any existing error/success messages
+    clearFieldValidation(fieldId);
+    
+    // Add error class to field
+    field.classList.add('error');
+    
+    // Create error message element
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'field-error';
+    errorDiv.textContent = message;
+    
+    // Insert error message after the field
+    field.parentNode.insertBefore(errorDiv, field.nextSibling);
+    
+    // Focus on the field
+    field.focus();
+}
+
+function showFieldSuccess(fieldId, message) {
+    const field = document.getElementById(fieldId);
+    const formGroup = field.closest('.form-group');
+    
+    // Remove any existing error/success messages
+    clearFieldValidation(fieldId);
+    
+    // Add success class to field
+    field.classList.add('success');
+    
+    // Create success message element
+    const successDiv = document.createElement('div');
+    successDiv.className = 'field-success';
+    successDiv.textContent = message;
+    
+    // Insert success message after the field
+    field.parentNode.insertBefore(successDiv, field.nextSibling);
+}
+
+function clearFieldValidation(fieldId) {
+    const field = document.getElementById(fieldId);
+    const formGroup = field.closest('.form-group');
+    
+    // Remove error/success classes
+    field.classList.remove('error', 'success');
+    
+    // Remove any existing error/success messages
+    const existingMessages = formGroup.querySelectorAll('.field-error, .field-success');
+    existingMessages.forEach(msg => msg.remove());
+}
+
+function clearAllFieldValidation(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    
+    // Remove all error/success classes
+    const fields = form.querySelectorAll('input, select, textarea');
+    fields.forEach(field => {
+        field.classList.remove('error', 'success');
+    });
+    
+    // Remove all error/success messages
+    const messages = form.querySelectorAll('.field-error, .field-success');
+    messages.forEach(msg => msg.remove());
+}
+// Real-time input validation
+function setupRealTimeValidation() {
+    // Check if we're on login page - don't apply real-time validation there
+    const isLoginPage = document.getElementById('loginForm');
+    
+    if (isLoginPage) {
+        // Only add basic validation on submit for login
+        return;
+    }
+    
+    // Name field validation - prevent numbers and special characters (registration only)
+    const nameField = document.getElementById('customerName');
+    if (nameField) {
+        nameField.addEventListener('input', function(e) {
+            const value = e.target.value;
+            // Allow only letters and spaces
+            const cleanValue = value.replace(/[^a-zA-Z\s]/g, '');
+            
+            if (value !== cleanValue) {
+                e.target.value = cleanValue;
+                showFieldError('customerName', 'Name can only contain letters and spaces');
+            } else if (cleanValue.length > 0) {
+                clearFieldValidation('customerName');
+                if (cleanValue.length >= 3) {
+                    showFieldSuccess('customerName', 'Name looks good!');
+                }
+            }
+        });
+        
+        nameField.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value && value.length >= 3 && /^[a-zA-Z\s]+$/.test(value)) {
+                showFieldSuccess('customerName', 'Name is valid');
+            }
+        });
+    }
+    
+    // Email field validation (non-login pages)
+    const emailField = document.getElementById('email');
+    if (emailField && !isLoginPage) {
+        emailField.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (!value) {
+                showFieldError('email', 'Email is mandatory');
+            } else if (!validateEmail(value)) {
+                showFieldError('email', 'Please enter a valid email address');
+            } else {
+                showFieldSuccess('email', 'Email is valid');
+            }
+        });
+    }
+    
+    // Mobile field validation
+    const mobileField = document.getElementById('mobile');
+    if (mobileField) {
+        mobileField.addEventListener('input', function(e) {
+            const value = e.target.value;
+            // Allow only numbers and limit to 10 digits
+            const cleanValue = value.replace(/\D/g, '').slice(0, 10);
+            e.target.value = cleanValue;
+            
+            if (cleanValue.length === 10) {
+                showFieldSuccess('mobile', 'Mobile number is valid');
+            } else if (cleanValue.length > 0) {
+                showFieldError('mobile', 'Mobile number must be exactly 10 digits');
+            }
+        });
+    }
+    
+    // Password field validation (non-login pages)
+    const passwordField = document.getElementById('password');
+    if (passwordField && !isLoginPage) {
+        passwordField.addEventListener('blur', function() {
+            const value = this.value;
+            if (!value) {
+                showFieldError('password', 'Password is mandatory');
+            } else if (!validatePassword(value)) {
+                showFieldError('password', 'Password must contain at least one uppercase, one lowercase, and one special character (8-30 characters)');
+            } else {
+                showFieldSuccess('password', 'Password is strong');
+            }
+        });
+    }
+    
+    // Confirm password validation
+    const confirmPasswordField = document.getElementById('confirmPassword');
+    if (confirmPasswordField) {
+        confirmPasswordField.addEventListener('blur', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            
+            if (!confirmPassword) {
+                showFieldError('confirmPassword', 'Confirm password is mandatory');
+            } else if (password !== confirmPassword) {
+                showFieldError('confirmPassword', 'Password and Confirm Password must match');
+            } else {
+                showFieldSuccess('confirmPassword', 'Passwords match');
+            }
+        });
+    }
+}
+
+// Initialize real-time validation when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    setupRealTimeValidation();
+});
+
 function showNotification(message, type = 'success') {
     // Use the modern popup notification system
     if (typeof window.showNotificationPopup === 'function') {
@@ -98,11 +272,9 @@ function findUserByEmail(email, password) {
     return users.find(user => user.email === email && user.password === password);
 }
 
-// Registration form validation
+// Registration form validation with inline errors
 function validateRegistrationForm() {
     const form = document.getElementById('registrationForm');
-    const errors = [];
-    
     const name = form.customerName.value.trim();
     const email = form.email.value.trim();
     const mobile = form.mobile.value.trim();
@@ -110,53 +282,101 @@ function validateRegistrationForm() {
     const password = form.password.value;
     const confirmPassword = form.confirmPassword.value;
     
-    if (name.length > 50) {
-        errors.push('Customer name must be maximum 50 characters');
+    // Clear previous validation
+    clearAllFieldValidation('registrationForm');
+    
+    let hasErrors = false;
+    
+    // Validate name - prevent numbers and special characters
+    if (!name) {
+        showFieldError('customerName', 'Name is mandatory');
+        hasErrors = true;
+    } else if (name.length < 3) {
+        showFieldError('customerName', 'Name must be at least 3 characters');
+        hasErrors = true;
+    } else if (!/^[a-zA-Z\s]+$/.test(name)) {
+        showFieldError('customerName', 'Name can only contain letters and spaces');
+        hasErrors = true;
     }
     
-    if (!validateEmail(email)) {
-        errors.push('Please enter a valid email address');
+    // Validate email
+    if (!email) {
+        showFieldError('email', 'Email is mandatory');
+        hasErrors = true;
+    } else if (!validateEmail(email)) {
+        showFieldError('email', 'Please enter a valid email address');
+        hasErrors = true;
     }
     
-    if (!validateMobile(mobile)) {
-        errors.push('Mobile number must be exactly 10 digits');
+    // Validate mobile
+    if (!mobile) {
+        showFieldError('mobile', 'Mobile number is mandatory');
+        hasErrors = true;
+    } else if (!/^\d{10}$/.test(mobile)) {
+        showFieldError('mobile', 'Mobile number must be exactly 10 digits');
+        hasErrors = true;
     }
     
-    if (!validatePassword(password)) {
-        errors.push('Password must contain at least one uppercase, one lowercase, and one special character (8-30 characters)');
+    // Validate address
+    if (!address) {
+        showFieldError('address', 'Address is mandatory');
+        hasErrors = true;
+    } else if (address.length < 10) {
+        showFieldError('address', 'Address must be at least 10 characters');
+        hasErrors = true;
     }
     
-    if (password !== confirmPassword) {
-        errors.push('Password and Confirm Password must match');
+    // Validate password
+    if (!password) {
+        showFieldError('password', 'Password is mandatory');
+        hasErrors = true;
+    } else if (!validatePassword(password)) {
+        showFieldError('password', 'Password must contain at least one uppercase, one lowercase, and one special character (8-30 characters)');
+        hasErrors = true;
     }
     
-    const errorDiv = document.getElementById('errorMessages');
-    if (errors.length > 0) {
-        showNotification(errors.join('\n'), 'error', 'Validation Error');
-        return false;
+    // Validate confirm password
+    if (!confirmPassword) {
+        showFieldError('confirmPassword', 'Confirm password is mandatory');
+        hasErrors = true;
+    } else if (password !== confirmPassword) {
+        showFieldError('confirmPassword', 'Password and Confirm Password must match');
+        hasErrors = true;
     }
     
-    errorDiv.innerHTML = '';
-    return true;
+    return !hasErrors;
 }
 
-// Login form validation
+// Login form validation with inline errors
 function validateLoginForm() {
     const form = document.getElementById('loginForm');
-    const email = form.email.value.trim(); // Changed from userId to email
+    const email = form.email.value.trim(); 
     const password = form.password.value;
     
-    if (!validateEmail(email)) { // Updated validation
-        showNotification('Please enter a valid email address', 'error');
-        return false;
+    // Clear previous validation
+    clearAllFieldValidation('loginForm');
+    
+    let hasErrors = false;
+    
+    // Validate email
+    if (!email) {
+        showFieldError('email', 'Email is mandatory');
+        hasErrors = true;
+    } else if (!validateEmail(email)) {
+        showFieldError('email', 'Please enter a valid email address');
+        hasErrors = true;
     }
     
-    if (!validatePassword(password)) {
-        showNotification('Invalid password format', 'error');
-        return false;
+    // Validate password
+    if (!password) {
+        showFieldError('password', 'Password is mandatory');
+        hasErrors = true;
+    } else if (!validatePassword(password)) {
+        showFieldError('password', 'Invalid password format');
+        hasErrors = true;
     }
     
-    return true;
+    return !hasErrors;
 }
 
 // Handle registration
