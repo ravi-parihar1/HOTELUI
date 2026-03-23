@@ -207,10 +207,57 @@ function setupRealTimeValidation() {
     }
 }
 
-// Initialize real-time validation when page loads
+// Active State Management - Universal for all pages
+function setActiveNavigation() {
+    const currentPath = window.location.pathname;
+    const currentPage = currentPath.split('/').pop().replace('.html', '');
+    
+    // Find all navigation links
+    const navLinks = document.querySelectorAll('.navbar nav ul li a');
+    
+    navLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        const linkPage = href.replace('.html', '').replace('./', '');
+        
+        // Remove existing active class
+        link.classList.remove('active');
+        
+        // Add active class to current page
+        if (linkPage === currentPage || 
+            (currentPage === '' && linkPage === 'index') ||
+            (currentPage === 'customer-dashboard' && linkPage === 'customer-dashboard') ||
+            (currentPage === 'admin-dashboard' && linkPage === 'admin-dashboard')) {
+            link.classList.add('active');
+        }
+    });
+    
+    // Also set active in mobile drawer
+    const drawerLinks = document.querySelectorAll('.mobile-drawer nav ul li a');
+    drawerLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        const linkPage = href.replace('.html', '').replace('./', '');
+        
+        // Remove existing active class
+        link.classList.remove('active');
+        
+        // Add active class to current page
+        if (linkPage === currentPage || 
+            (currentPage === '' && linkPage === 'index') ||
+            (currentPage === 'customer-dashboard' && linkPage === 'customer-dashboard') ||
+            (currentPage === 'admin-dashboard' && linkPage === 'admin-dashboard')) {
+            link.classList.add('active');
+        }
+    });
+}
+
+// Initialize active state when page loads
 document.addEventListener('DOMContentLoaded', function() {
+    setActiveNavigation();
     setupRealTimeValidation();
 });
+
+// Also update active state when navigation occurs
+window.addEventListener('popstate', setActiveNavigation);
 
 function showNotification(message, type = 'success') {
     // Use the modern popup notification system

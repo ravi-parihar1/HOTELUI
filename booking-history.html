@@ -9,19 +9,22 @@
 <body>
     <nav class="navbar">
         <div class="container">
+            <a href="customer-dashboard.html" class="logo">HotelHub</a>
             <nav>
                 <ul>
                     <li><a href="customer-dashboard.html">Home</a></li>
                     <li><a href="reservation.html">Reservation</a></li>
                     <li><a href="billing.html">Billing Page</a></li>
-                    <li><a href="booking-history.html">History</a></li>
+                    <li><a href="booking-history.html" class="active">History</a></li>
                     <li><a href="bookings.html">Bookings</a></li>
                     <li><a href="customer-support.html">Contact Support</a></li>
-                    <li><a href="#" class="logout-btn">Logout</a></li>
                 </ul>
             </nav>
-            <div class="user-info">
-                Welcome <span id="username">Guest</span>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Guest</span>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
             </div>
         </div>
     </nav>
@@ -112,7 +115,7 @@
                                     <td>${reservation.checkInDate}</td>
                                     <td>${reservation.checkOutDate}</td>
                                     <td>${reservation.roomNumber || 'Not assigned'}</td>
-                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td>₹${reservation.billAmount || 0}</td>
                                     <td>${bookingDate}</td>
                                     <td><span class="status-${reservation.status}">${reservation.status}</span></td>
                                     <td><span class="status-${reservation.paid ? 'paid' : 'pending'}">${reservation.paid ? 'Paid' : 'Pending'}</span></td>

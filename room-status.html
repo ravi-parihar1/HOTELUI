@@ -9,20 +9,23 @@
 <body>
     <nav class="navbar">
         <div class="container">
+            <a href="admin-dashboard.html" class="logo">HotelHub</a>
             <nav>
                 <ul>
-                    <li><a href="admin-dashboard.html">Home</a></li>
-                    <li><a href="admin-reservation.html">Reservation</a></li>
-                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-dashboard.html">Dashboard</a></li>
+                    <li><a href="admin-reservation.html">Reservations</a></li>
+                    <li><a href="admin-billing.html">Billing</a></li>
                     <li><a href="admin-booking-history.html">History</a></li>
-                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="room-status.html" class="active">Rooms</a></li>
                     <li><a href="admin-bookings.html">Bookings</a></li>
-                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
-                    <li><a href="#" class="logout-btn">Logout</a></li>
+                    <li><a href="admin-customer-support.html">Support</a></li>
                 </ul>
             </nav>
-            <div class="user-info">
-                Welcome <span id="username">Admin</span>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Admin</span>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
             </div>
         </div>
     </nav>
@@ -371,7 +374,7 @@
                 <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
                     <h4>Customer Room Summary</h4>
                     <p><strong>Total Rooms Booked:</strong> ${customerRoomData.length}</p>
-                    <p><strong>Total Cost:</strong> $${customerRoomData.reduce((sum, room) => sum + room.price, 0)} per night</p>
+                    <p><strong>Total Cost:</strong> ₹${customerRoomData.reduce((sum, room) => sum + room.price, 0)} per night</p>
                     <p><strong>Room Types:</strong> ${[...new Set(customerRoomData.map(r => r.type))].join(', ')}</p>
                 </div>
             `;

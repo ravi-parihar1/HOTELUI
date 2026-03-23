@@ -9,20 +9,23 @@
 <body>
     <nav class="navbar">
         <div class="container">
+            <a href="admin-dashboard.html" class="logo">HotelHub</a>
             <nav>
                 <ul>
-                    <li><a href="admin-dashboard.html">Home</a></li>
-                    <li><a href="admin-reservation.html">Reservation</a></li>
-                    <li><a href="admin-billing.html">Billing Page</a></li>
+                    <li><a href="admin-dashboard.html">Dashboard</a></li>
+                    <li><a href="admin-reservation.html">Reservations</a></li>
+                    <li><a href="admin-billing.html" class="active">Billing</a></li>
                     <li><a href="admin-booking-history.html">History</a></li>
-                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="room-status.html">Rooms</a></li>
                     <li><a href="admin-bookings.html">Bookings</a></li>
-                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
-                    <li><a href="#" class="logout-btn">Logout</a></li>
+                    <li><a href="admin-customer-support.html">Support</a></li>
                 </ul>
             </nav>
-            <div class="user-info">
-                Welcome <span id="username">Admin</span>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Admin</span>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
             </div>
         </div>
     </nav>
@@ -184,9 +187,9 @@
                         </div>
                         <div>
                             <h4>Payment Status:</h4>
-                            <p><strong>Total Amount:</strong> $${totalAmount}</p>
-                            <p><strong>Paid Amount:</strong> $${paidAmount}</p>
-                            <p><strong>Pending Amount:</strong> $${pendingAmount}</p>
+                            <p><strong>Total Amount:</strong> ₹${totalAmount}</p>
+                            <p><strong>Paid Amount:</strong> ₹${paidAmount}</p>
+                            <p><strong>Pending Amount:</strong> ₹${pendingAmount}</p>
                         </div>
                     </div>
                     
@@ -210,7 +213,7 @@
                                     <td style="padding: 10px;">${reservation.checkOutDate}</td>
                                     <td style="padding: 10px;">${reservation.roomPreference}</td>
                                     <td style="padding: 10px;">${reservation.roomNumber || 'Not assigned'}</td>
-                                    <td style="padding: 10px; text-align: right;">$${reservation.billAmount || 0}</td>
+                                    <td style="padding: 10px; text-align: right;">₹${reservation.billAmount || 0}</td>
                                     <td style="padding: 10px; text-align: center;">
                                         <span class="status-${reservation.paid ? 'paid' : 'pending'}">
                                             ${reservation.paid ? 'Paid' : 'Pending'}
@@ -222,7 +225,7 @@
                         <tfoot>
                             <tr style="background: #f8f9fa; font-weight: bold;">
                                 <td colspan="5" style="padding: 10px; text-align: right;">Total:</td>
-                                <td style="padding: 10px; text-align: right;">$${totalAmount}</td>
+                                <td style="padding: 10px; text-align: right;">₹${totalAmount}</td>
                                 <td></td>
                             </tr>
                         </tfoot>
@@ -286,7 +289,7 @@
                                     <td>${invoice.invoiceId}</td>
                                     <td>${invoice.customerId}</td>
                                     <td>${customer ? customer.customerName : 'Unknown'}</td>
-                                    <td>$${invoice.totalAmount}</td>
+                                    <td>₹${invoice.totalAmount}</td>
                                     <td>${new Date(invoice.generatedDate).toLocaleDateString()}</td>
                                     <td><span class="status-success">${invoice.status}</span></td>
                                 </tr>

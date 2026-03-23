@@ -9,20 +9,23 @@
 <body>
     <nav class="navbar">
         <div class="container">
+            <a href="admin-dashboard.html" class="logo">HotelHub</a>
             <nav>
                 <ul>
-                    <li><a href="admin-dashboard.html">Home</a></li>
-                    <li><a href="admin-reservation.html">Reservation</a></li>
-                    <li><a href="admin-billing.html">Billing Page</a></li>
-                    <li><a href="admin-booking-history.html">History</a></li>
-                    <li><a href="room-status.html">Room Status</a></li>
+                    <li><a href="admin-dashboard.html">Dashboard</a></li>
+                    <li><a href="admin-reservation.html">Reservations</a></li>
+                    <li><a href="admin-billing.html">Billing</a></li>
+                    <li><a href="admin-booking-history.html" class="active">History</a></li>
+                    <li><a href="room-status.html">Rooms</a></li>
                     <li><a href="admin-bookings.html">Bookings</a></li>
-                    <li><a href="admin-customer-support.html">Contact Support/Feedback</a></li>
-                    <li><a href="#" class="logout-btn">Logout</a></li>
+                    <li><a href="admin-customer-support.html">Support</a></li>
                 </ul>
             </nav>
-            <div class="user-info">
-                Welcome <span id="username">Admin</span>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Admin</span>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
             </div>
         </div>
     </nav>
@@ -117,7 +120,7 @@
                 const html = `
                     <div style="margin-bottom: 20px;">
                         <p><strong>Total Bookings:</strong> ${customerReservations.length}</p>
-                        <p><strong>Total Amount:</strong> $${customerReservations.reduce((sum, r) => sum + (r.billAmount || 0), 0)}</p>
+                        <p><strong>Total Amount:</strong> ₹${customerReservations.reduce((sum, r) => sum + (r.billAmount || 0), 0)}</p>
                     </div>
                     <table>
                         <thead>
@@ -142,7 +145,7 @@
                                         <td>${reservation.checkInDate}</td>
                                         <td>${reservation.checkOutDate}</td>
                                         <td>${reservation.roomNumber || 'Not assigned'}</td>
-                                        <td>$${reservation.billAmount || 0}</td>
+                                        <td>₹${reservation.billAmount || 0}</td>
                                         <td>${bookingDate}</td>
                                         <td><span class="status-${reservation.status}">${reservation.status}</span></td>
                                         <td><span class="status-${reservation.paid ? 'paid' : 'pending'}">${reservation.paid ? 'Paid' : 'Pending'}</span></td>
@@ -185,7 +188,7 @@
                         <td>${customer.email}</td>
                         <td>${customer.mobile}</td>
                         <td>${totalBookings}</td>
-                        <td>$${totalAmount}</td>
+                        <td>₹${totalAmount}</td>
                         <td>${lastBooking}</td>
                         <td>
                             <button class="btn-secondary" onclick="viewSpecificCustomer('${customer.customerId}')">View History</button>

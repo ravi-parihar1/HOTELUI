@@ -9,19 +9,22 @@
 <body>
     <nav class="navbar">
         <div class="container">
+            <a href="customer-dashboard.html" class="logo">HotelHub</a>
             <nav>
                 <ul>
                     <li><a href="customer-dashboard.html">Home</a></li>
                     <li><a href="reservation.html">Reservation</a></li>
                     <li><a href="billing.html">Billing Page</a></li>
                     <li><a href="booking-history.html">History</a></li>
-                    <li><a href="bookings.html">Bookings</a></li>
+                    <li><a href="bookings.html" class="active">Bookings</a></li>
                     <li><a href="customer-support.html">Contact Support</a></li>
-                    <li><a href="#" class="logout-btn">Logout</a></li>
                 </ul>
             </nav>
-            <div class="user-info">
-                Welcome <span id="username">Guest</span>
+            <div class="nav-right">
+                <div class="user-info">
+                    Welcome <span id="username">Guest</span>
+                </div>
+                <a href="#" class="logout-btn">Logout</a>
             </div>
         </div>
     </nav>
@@ -131,7 +134,7 @@
                                     <td>${reservation.checkOutDate}</td>
                                     <td>${reservation.roomNumber || 'Not assigned'}</td>
                                     <td>${reservation.roomPreference}</td>
-                                    <td>$${reservation.billAmount || 0}</td>
+                                    <td>₹${reservation.billAmount || 0}</td>
                                     <td><span class="status-${reservation.status}">${reservation.status}</span></td>
                                     <td>${daysUntil > 0 ? daysUntil + ' days' : 'Today'}</td>
                                     <td>
@@ -191,7 +194,7 @@
                     Check-out: ${reservation.checkOutDate}
                     Room Type: ${reservation.roomPreference}
                     Room Number: ${reservation.roomNumber || 'Not assigned'}
-                    Bill Amount: $${reservation.billAmount || 0}
+                    Bill Amount: ₹${reservation.billAmount || 0}
                     Status: ${reservation.status}
                 `;
                 showNotification(details, 'info', 'Booking Details');
