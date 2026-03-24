@@ -55,6 +55,7 @@
                             <option value="">Select payment method</option>
                             <option value="debit">Debit Card</option>
                             <option value="credit">Credit Card</option>
+                            <option value="upi">UPI</option>
                         </select>
                         <div class="error-message">Please select a payment method</div>
                     </div>
@@ -68,30 +69,48 @@
                 <!-- Card Details Section (Initially Hidden) -->
                 <div id="cardDetailsSection" style="display: none;">
                     <form id="cardForm">
-                        <h3>Credit Card Details</h3>
+                        <h3 id="paymentFormTitle">Payment Details</h3>
                         
-                        <div class="form-group">
-                            <label for="cardNumber">Card Number:</label>
-                            <input type="text" id="cardNumber" name="cardNumber" pattern="[0-9]{16}" maxlength="16" required>
-                            <div class="error-message">Card number must be 16 digits</div>
+                        <!-- Card Payment Fields -->
+                        <div id="cardFields">
+                            <div class="form-group">
+                                <label for="cardNumber">Card Number:</label>
+                                <input type="text" id="cardNumber" name="cardNumber" pattern="[0-9]{16}" maxlength="16">
+                                <div class="error-message">Card number must be 16 digits</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cardHolderName">Card Holder Name:</label>
+                                <input type="text" id="cardHolderName" name="cardHolderName" minlength="10">
+                                <div class="error-message">Card holder name must be at least 10 characters</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="expiryDate">Expiry Date:</label>
+                                <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" pattern="(0[1-9]|1[0-2])\/([0-9]{2})">
+                                <div class="error-message">Please enter valid expiry date (MM/YY)</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cvv">CVV:</label>
+                                <input type="password" id="cvv" name="cvv" pattern="[0-9]{3}" maxlength="3">
+                                <div class="error-message">CVV must be 3 digits</div>
+                            </div>
                         </div>
                         
-                        <div class="form-group">
-                            <label for="cardHolderName">Card Holder Name:</label>
-                            <input type="text" id="cardHolderName" name="cardHolderName" minlength="10" required>
-                            <div class="error-message">Card holder name must be at least 10 characters</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="expiryDate">Expiry Date:</label>
-                            <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" pattern="(0[1-9]|1[0-2])\/([0-9]{2})" required>
-                            <div class="error-message">Please enter valid expiry date (MM/YY)</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="cvv">CVV:</label>
-                            <input type="text" id="cvv" name="cvv" pattern="[0-9]{3}" maxlength="3" required>
-                            <div class="error-message">CVV must be 3 digits</div>
+                        <!-- UPI Payment Fields -->
+                        <div id="upiFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="upiId">UPI ID:</label>
+                                <input type="text" id="upiId" name="upiId" placeholder="yourname@upi" pattern="[a-zA-Z0-9._-]+@[a-zA-Z]{2,}">
+                                <div class="error-message">Please enter a valid UPI ID (e.g., yourname@upi)</div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="upiName">Account Holder Name:</label>
+                                <input type="text" id="upiName" name="upiName" minlength="3">
+                                <div class="error-message">Account holder name must be at least 3 characters</div>
+                            </div>
                         </div>
                         
                         <div class="form-group">
@@ -142,8 +161,41 @@
                 return;
             }
             
-            document.getElementById('cardDetailsSection').style.display = 'block';
-            document.getElementById('cardDetailsSection').scrollIntoView({ behavior: 'smooth' });
+            const cardDetailsSection = document.getElementById('cardDetailsSection');
+            const cardFields = document.getElementById('cardFields');
+            const upiFields = document.getElementById('upiFields');
+            const paymentFormTitle = document.getElementById('paymentFormTitle');
+            
+            cardDetailsSection.style.display = 'block';
+            
+            // Update required attributes based on payment mode
+            if (paymentMode === 'upi') {
+                cardFields.style.display = 'none';
+                upiFields.style.display = 'block';
+                paymentFormTitle.textContent = 'UPI Payment Details';
+                
+                // Make UPI fields required, remove required from card fields
+                document.getElementById('upiId').setAttribute('required', 'required');
+                document.getElementById('upiName').setAttribute('required', 'required');
+                document.getElementById('cardNumber').removeAttribute('required');
+                document.getElementById('cardHolderName').removeAttribute('required');
+                document.getElementById('expiryDate').removeAttribute('required');
+                document.getElementById('cvv').removeAttribute('required');
+            } else {
+                cardFields.style.display = 'block';
+                upiFields.style.display = 'none';
+                paymentFormTitle.textContent = paymentMode === 'debit' ? 'Debit Card Details' : 'Credit Card Details';
+                
+                // Make card fields required, remove required from UPI fields
+                document.getElementById('cardNumber').setAttribute('required', 'required');
+                document.getElementById('cardHolderName').setAttribute('required', 'required');
+                document.getElementById('expiryDate').setAttribute('required', 'required');
+                document.getElementById('cvv').setAttribute('required', 'required');
+                document.getElementById('upiId').removeAttribute('required');
+                document.getElementById('upiName').removeAttribute('required');
+            }
+            
+            cardDetailsSection.scrollIntoView({ behavior: 'smooth' });
         }
 
         function hideCardDetails() {
@@ -153,29 +205,64 @@
         function validatePaymentForm() {
             const form = document.getElementById('cardForm');
             const errors = [];
+            const paymentMode = document.getElementById('paymentMode').value;
             
-            const cardNumber = form.cardNumber.value.trim();
-            const cardHolderName = form.cardHolderName.value.trim();
-            const expiryDate = form.expiryDate.value.trim();
-            const cvv = form.cvv.value.trim();
+            // Debug: Check if form elements exist
+            console.log('Payment Mode:', paymentMode);
+            console.log('Form:', form);
             
-            if (!cardNumber || !/^\d{16}$/.test(cardNumber)) {
-                errors.push('Card number must be exactly 16 digits');
+            if (paymentMode === 'upi') {
+                // Validate UPI fields
+                const upiIdField = form.upiId;
+                const upiNameField = form.upiName;
+                
+                console.log('UPI ID Field:', upiIdField);
+                console.log('UPI Name Field:', upiNameField);
+                
+                const upiId = upiIdField ? upiIdField.value.trim() : '';
+                const upiName = upiNameField ? upiNameField.value.trim() : '';
+                
+                console.log('UPI ID Value:', upiId);
+                console.log('UPI Name Value:', upiName);
+                
+                if (!upiId) {
+                    errors.push('UPI ID is required');
+                } else if (!/^[a-zA-Z0-9._-]+@[a-zA-Z]{2,}$/.test(upiId)) {
+                    errors.push('Please enter a valid UPI ID (e.g., yourname@upi)');
+                }
+                
+                if (!upiName || upiName.length < 3) {
+                    errors.push('Account holder name must be at least 3 characters');
+                } else if (!/^[a-zA-Z\s]+$/.test(upiName)) {
+                    errors.push('Account holder name can only contain letters and spaces');
+                }
+            } else {
+                // Validate Card fields
+                const cardNumber = form.cardNumber.value.trim();
+                const cardHolderName = form.cardHolderName.value.trim();
+                const expiryDate = form.expiryDate.value.trim();
+                const cvv = form.cvv.value.trim();
+                
+                if (!cardNumber || !/^\d{16}$/.test(cardNumber)) {
+                    errors.push('Card number must be exactly 16 digits');
+                }
+                
+                if (!cardHolderName || cardHolderName.length < 10) {
+                    errors.push('Card holder name must be at least 10 characters');
+                } else if (!/^[a-zA-Z\s]+$/.test(cardHolderName)) {
+                    errors.push('Card holder name can only contain letters and spaces');
+                }
+                
+                if (!expiryDate || !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate)) {
+                    errors.push('Please enter a valid expiry date (MM/YY)');
+                }
+                
+                if (!cvv || !/^\d{3}$/.test(cvv)) {
+                    errors.push('CVV must be exactly 3 digits');
+                }
             }
             
-            if (!cardHolderName || cardHolderName.length < 10) {
-                errors.push('Card holder name must be at least 10 characters');
-            } else if (!/^[a-zA-Z\s]+$/.test(cardHolderName)) {
-                errors.push('Card holder name can only contain letters and spaces');
-            }
-            
-            if (!expiryDate || !/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(expiryDate)) {
-                errors.push('Please enter a valid expiry date (MM/YY)');
-            }
-            
-            if (!cvv || !/^\d{3}$/.test(cvv)) {
-                errors.push('CVV must be exactly 3 digits');
-            }
+            console.log('Validation Errors:', errors);
             
             const errorDiv = document.getElementById('errorMessages');
             if (errors.length > 0) {
@@ -189,10 +276,14 @@
 
         function handlePayment(event) {
             event.preventDefault();
+            console.log('handlePayment called');
             
             if (!validatePaymentForm()) {
+                console.log('Validation failed');
                 return;
             }
+            
+            console.log('Validation passed');
             
             if (!pendingPaymentData) {
                 showNotification('Payment information not found', 'error');
@@ -200,15 +291,38 @@
             }
             
             const transactionId = generateTransactionId();
+            const paymentMode = document.getElementById('paymentMode').value;
+            const form = document.getElementById('cardForm');
+            
+            console.log('Payment Mode:', paymentMode);
+            console.log('Form:', form);
+            
+            let paymentDetails = {
+                paymentMode: paymentMode
+            };
+            
+            if (paymentMode === 'upi') {
+                paymentDetails.upiId = form.upiId.value.trim();
+                paymentDetails.upiName = form.upiName.value.trim();
+                console.log('UPI Details:', paymentDetails);
+            } else {
+                paymentDetails.cardNumber = form.cardNumber.value.trim().slice(-4); // Only store last 4 digits
+                paymentDetails.cardHolderName = form.cardHolderName.value.trim();
+                paymentDetails.expiryDate = form.expiryDate.value.trim();
+                console.log('Card Details:', paymentDetails);
+            }
+            
             const paymentData = {
                 transactionId: transactionId,
                 bookingId: pendingPaymentData.bookingId,
                 customerId: pendingPaymentData.customerId,
                 amount: pendingPaymentData.amount,
-                paymentMode: document.getElementById('paymentMode').value,
+                ...paymentDetails,
                 paymentDate: new Date().toISOString(),
                 status: 'success'
             };
+            
+            console.log('Payment Data:', paymentData);
             
             // Store payment
             let payments = JSON.parse(localStorage.getItem('payments') || '[]');
@@ -226,11 +340,13 @@
             
             // Show success message
             const successDiv = document.getElementById('successMessage');
+            const paymentTypeText = paymentMode === 'upi' ? 'UPI Payment' : 'Card Payment';
             successDiv.innerHTML = `
                 <div class="success-message">
-                    <h3>Payment Successful!</h3>
+                    <h3>${paymentTypeText} Successful!</h3>
                     <p><strong>Transaction ID:</strong> ${transactionId}</p>
                     <p><strong>Amount:</strong> ₹${pendingPaymentData.amount}</p>
+                    <p><strong>Payment Method:</strong> ${paymentMode === 'upi' ? 'UPI' : (paymentMode === 'debit' ? 'Debit Card' : 'Credit Card')}</p>
                     <p>Thank you for your payment. Your invoice has been generated.</p>
                 </div>
             `;
@@ -275,6 +391,60 @@
                 showFieldError('cardHolderName', 'Card holder name must be at least 10 characters');
             } else if (value && !/^[a-zA-Z\s]+$/.test(value)) {
                 showFieldError('cardHolderName', 'Card holder name can only contain letters and spaces');
+            }
+        });
+
+        // UPI ID validation
+        document.getElementById('upiId')?.addEventListener('input', function(e) {
+            const value = e.target.value;
+            const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z]{2,}$/;
+            
+            if (value.length > 0 && !upiPattern.test(value)) {
+                showFieldError('upiId', 'Please enter a valid UPI ID (e.g., yourname@upi)');
+            } else if (value.length > 0 && upiPattern.test(value)) {
+                showFieldSuccess('upiId', 'UPI ID looks good!');
+            } else {
+                clearFieldValidation('upiId');
+            }
+        });
+        
+        document.getElementById('upiId')?.addEventListener('blur', function() {
+            const value = this.value.trim();
+            const upiPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z]{2,}$/;
+            if (value && upiPattern.test(value)) {
+                showFieldSuccess('upiId', 'UPI ID is valid');
+            } else if (value) {
+                showFieldError('upiId', 'Please enter a valid UPI ID (e.g., yourname@upi)');
+            }
+        });
+
+        // UPI Name validation
+        document.getElementById('upiName')?.addEventListener('input', function(e) {
+            const value = e.target.value;
+            // Allow only letters and spaces
+            const cleanValue = value.replace(/[^a-zA-Z\s]/g, '');
+            
+            if (value !== cleanValue) {
+                e.target.value = cleanValue;
+                showFieldError('upiName', 'Account holder name can only contain letters and spaces');
+            } else if (cleanValue.length > 0) {
+                clearFieldValidation('upiName');
+                if (cleanValue.length >= 3) {
+                    showFieldSuccess('upiName', 'Account holder name looks good!');
+                } else if (cleanValue.length < 3) {
+                    showFieldError('upiName', 'Account holder name must be at least 3 characters');
+                }
+            }
+        });
+        
+        document.getElementById('upiName')?.addEventListener('blur', function() {
+            const value = this.value.trim();
+            if (value && value.length >= 3 && /^[a-zA-Z\s]+$/.test(value)) {
+                showFieldSuccess('upiName', 'Account holder name is valid');
+            } else if (value && value.length < 3) {
+                showFieldError('upiName', 'Account holder name must be at least 3 characters');
+            } else if (value && !/^[a-zA-Z\s]+$/.test(value)) {
+                showFieldError('upiName', 'Account holder name can only contain letters and spaces');
             }
         });
 
